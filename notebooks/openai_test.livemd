@@ -1,0 +1,48 @@
+# openai-test
+
+```elixir
+# connect to local mix project
+app_root = Path.join(__DIR__, "..")
+
+Mix.install(
+  [
+    {:chat_bots, path: app_root, env: :dev}
+  ],
+  config_path: Path.join(app_root, "config/config.exs"),
+  lockfile: Path.join(app_root, "mix.lock")
+)
+```
+
+## Section
+
+```elixir
+Application.get_all_env(:openai)
+```
+
+```elixir
+context = "You are a helpful assistant"
+role_message = %{role: "system", content: context}
+```
+
+```elixir
+prompt = "Who was the first person to climb Mount Everest?"
+```
+
+```elixir
+user_message = %{role: "user", content: prompt}
+messages = [role_message, user_message]
+```
+
+```elixir
+response =
+  OpenAI.chat_completion(
+    model: "gpt-3.5-turbo",
+    messages: messages
+  )
+```
+
+```elixir
+alias ChatBots.OpenAi.Client
+
+Client.chat_completion(model: "gpt-3.5-turbo", messages: messages)
+```
