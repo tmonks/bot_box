@@ -12,6 +12,6 @@ defmodule ChatBots.Chats do
   Adds a message to the chat.
   """
   def add_message(chat, message) do
-    %Chat{chat | messages: [message | chat.messages]}
+    %Chat{chat | messages: chat.messages ++ [message]}
   end
 end

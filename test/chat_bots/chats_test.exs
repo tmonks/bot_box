@@ -16,4 +16,14 @@ defmodule ChatBots.ChatsTest do
     chat = Chats.add_message(chat, message)
     assert [^message] = chat.messages
   end
+
+  test "add_message/2 adds a message to the end of the chat" do
+    chat = Chats.new_chat("echo")
+    message1 = %Message{content: "User message", role: "user"}
+    message2 = %Message{content: "Assistant response", role: "assistant"}
+
+    chat = Chats.add_message(chat, message1)
+    chat = Chats.add_message(chat, message2)
+    assert [^message1, ^message2] = chat.messages
+  end
 end
