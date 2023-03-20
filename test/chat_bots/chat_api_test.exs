@@ -4,19 +4,20 @@ defmodule ChatBots.ChatApiTest do
   alias ChatBots.OpenAi.MockClient
   alias ChatBots.ChatApi
   alias ChatBots.Chats
-  alias ChatBots.Chats.Message
 
   # mocks need to be verified when the test exits
   setup :verify_on_exit!
 
   test "send_message/2 adds a response to the chat" do
-    chat = Chats.new_chat("echo")
+    chat = Chats.new_chat("test_bot")
     message_text = "What is the meaning of life?"
 
-    # Set up the mock and assert the message is sent to the client
+    # Set up the mock and assert the message is sent to the client as a map
     MockClient
-    |> expect(:chat_completion, fn args ->
-      assert [model: _, messages: [%Message{role: "user", content: ^message_text}]] = args
+    |> expect(:chat_completion, fn [model: _, messages: messages] ->
+      assert [system_prompt, user_prompt] = messages
+      assert system_prompt == %{role: "system", content: "You are a helpful assistant."}
+      assert user_prompt == %{role: "user", content: message_text}
       success_fixture()
     end)
 
@@ -46,5 +47,17 @@ defmodule ChatBots.ChatApiTest do
        object: "chat.completion",
        usage: %{"completion_tokens" => 38, "prompt_tokens" => 27, "total_tokens" => 65}
      }}
+  end
+
+  defp error_fixture do
+    %{
+      "error" => %{
+        "code" => nil,
+        "message" =>
+          "Additional properties are not allowed ('__struct__' was unexpected) - 'messages.0'",
+        "param" => nil,
+        "type" => "invalid_request_error"
+      }
+    }
   end
 end

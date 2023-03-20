@@ -16,33 +16,27 @@ Mix.install(
 ## Section
 
 ```elixir
-Application.get_all_env(:openai)
+alias ChatBots.Chats
+chat = Chats.new_chat("test_bot")
 ```
 
 ```elixir
-context = "You are a helpful assistant"
-role_message = %{role: "system", content: context}
+ChatBots.ChatApi.send_message(
+  chat,
+  "Who is considered to be the most powerful Marvel super hero?"
+)
 ```
 
 ```elixir
-prompt = "Who was the first person to climb Mount Everest?"
+# response =
+#   OpenAI.chat_completion(
+#     model: "gpt-3.5-turbo",
+#     messages: messages
+#   )
 ```
 
 ```elixir
-user_message = %{role: "user", content: prompt}
-messages = [role_message, user_message]
-```
+# alias ChatBots.OpenAi.Client
 
-```elixir
-response =
-  OpenAI.chat_completion(
-    model: "gpt-3.5-turbo",
-    messages: messages
-  )
-```
-
-```elixir
-alias ChatBots.OpenAi.Client
-
-Client.chat_completion(model: "gpt-3.5-turbo", messages: messages)
+# Client.chat_completion(model: "gpt-3.5-turbo", messages: messages)
 ```

@@ -6,9 +6,7 @@ defmodule ChatBots.Bots do
   """
   def list_bots do
     [
-      %Bot{id: "echo", name: "Echo", directive: "echo"},
-      %Bot{id: "reverse", name: "Reverse", directive: "reverse"},
-      %Bot{id: "uppercase", name: "Uppercase", directive: "uppercase"}
+      %Bot{id: "test_bot", name: "Test Bot", directive: "You are a helpful assistant."}
     ]
   end
 

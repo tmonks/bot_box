@@ -14,7 +14,12 @@ defmodule ChatBots.ChatApi do
       content: message_text
     }
 
-    case Client.chat_completion(model: @model, messages: chat.messages ++ [user_message]) do
+    # create a list of maps from the chat messages
+    messages =
+      (chat.messages ++ [user_message])
+      |> Enum.map(&Map.from_struct(&1))
+
+    case Client.chat_completion(model: @model, messages: messages) do
       {:ok, %{choices: [choice | _]}} ->
         assistant_message = choice["message"] |> convert_string_keys_to_atoms()
 

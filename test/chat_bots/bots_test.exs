@@ -8,10 +8,10 @@ defmodule ChatBots.BotsTest do
   end
 
   test "get_bot/1 returns a Bot with expected attributes" do
-    assert %Bot{} = bot = Bots.get_bot("echo")
+    assert %Bot{} = bot = Bots.get_bot("test_bot")
 
-    assert bot.id == "echo"
-    assert bot.name == "Echo"
-    assert bot.directive == "echo"
+    assert bot.id == "test_bot"
+    assert bot.name == "Test Bot"
+    assert bot.directive == "You are a helpful assistant."
   end
 end
