@@ -28,6 +28,17 @@ defmodule ChatBots.ChatApiTest do
     assert %{role: "assistant", content: "42"} = updated_chat.messages |> Enum.at(-1)
   end
 
+  test "send_message/2 returns an error tuple if the client returns an error" do
+    chat = Chats.new_chat("test_bot")
+    message_text = "What is the meaning of life?"
+
+    # Set up the mock and assert the message is sent to the client as a map
+    MockClient |> expect(:chat_completion, fn _ -> error_fixture() end)
+
+    assert {:error, error} = ChatApi.send_message(chat, message_text)
+    assert error["message"] == "Invalid request"
+  end
+
   defp success_fixture do
     {:ok,
      %{
@@ -50,14 +61,14 @@ defmodule ChatBots.ChatApiTest do
   end
 
   defp error_fixture do
-    %{
-      "error" => %{
-        "code" => nil,
-        "message" =>
-          "Additional properties are not allowed ('__struct__' was unexpected) - 'messages.0'",
-        "param" => nil,
-        "type" => "invalid_request_error"
-      }
-    }
+    {:error,
+     %{
+       "error" => %{
+         "code" => nil,
+         "message" => "Invalid request",
+         "param" => nil,
+         "type" => "invalid_request_error"
+       }
+     }}
   end
 end

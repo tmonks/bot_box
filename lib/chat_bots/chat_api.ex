@@ -31,8 +31,7 @@ defmodule ChatBots.ChatApi do
         {:ok, updated_chat}
 
       {:error, error} ->
-        IO.inspect(error)
-        {:error, chat}
+        {:error, error["error"]}
     end
   end
 
