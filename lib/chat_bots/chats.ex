@@ -14,6 +14,7 @@ defmodule ChatBots.Chats do
   @doc """
   Adds a message to the chat.
   """
+  # TODO: enforce that it only accepts a %Message struct
   def add_message(chat, message) do
     %Chat{chat | messages: chat.messages ++ [message]}
   end
