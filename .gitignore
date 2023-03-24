@@ -35,3 +35,4 @@ chat_bots-*.tar
 npm-debug.log
 /assets/node_modules/
 
+.env

@@ -21,6 +21,7 @@ defmodule ChatBots.ChatApi do
 
     case Client.chat_completion(model: @model, messages: messages) do
       {:ok, %{choices: [choice | _]}} ->
+        # TODO: convert this to a %Message{} struct??
         assistant_message = choice["message"] |> convert_string_keys_to_atoms()
 
         updated_chat =
@@ -31,7 +32,7 @@ defmodule ChatBots.ChatApi do
         {:ok, updated_chat}
 
       {:error, error} ->
-        {:error, error["error"]}
+        {:error, error}
     end
   end
 

@@ -17,8 +17,10 @@ defmodule ChatBotsWeb.ChatLive do
     {:ok, socket}
   end
 
-  def handle_event("send_message", %{"message" => message}, socket) do
-    chat = Chats.add_message(socket.assigns.chat, %{role: "user", content: message})
+  def handle_event("send_message", %{"message" => message_text}, socket) do
+    # chat = Chats.add_message(socket.assigns.chat, %{role: "user", content: message})
+
+    {:ok, chat} = ChatBots.ChatApi.send_message(socket.assigns.chat, message_text)
 
     {:noreply, assign(socket, chat: chat)}
   end
