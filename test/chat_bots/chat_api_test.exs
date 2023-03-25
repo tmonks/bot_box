@@ -6,6 +6,7 @@ defmodule ChatBots.ChatApiTest do
   alias ChatBots.OpenAi.MockClient
   alias ChatBots.ChatApi
   alias ChatBots.Chats
+  alias ChatBots.Chats.Message
 
   # mocks need to be verified when the test exits
   setup :verify_on_exit!
@@ -26,8 +27,8 @@ defmodule ChatBots.ChatApiTest do
     {:ok, updated_chat} = ChatApi.send_message(chat, message_text)
 
     # assert the last message in the updated_chat is "42
-    assert %{role: "user", content: ^message_text} = updated_chat.messages |> Enum.at(-2)
-    assert %{role: "assistant", content: "42"} = updated_chat.messages |> Enum.at(-1)
+    assert %Message{role: "user", content: ^message_text} = updated_chat.messages |> Enum.at(-2)
+    assert %Message{role: "assistant", content: "42"} = updated_chat.messages |> Enum.at(-1)
   end
 
   test "send_message/2 returns an error tuple if the client returns an error" do

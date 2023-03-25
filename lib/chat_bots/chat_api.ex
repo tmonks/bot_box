@@ -21,8 +21,7 @@ defmodule ChatBots.ChatApi do
 
     case Client.chat_completion(model: @model, messages: messages) do
       {:ok, %{choices: [choice | _]}} ->
-        # TODO: convert this to a %Message{} struct??
-        assistant_message = choice["message"] |> convert_string_keys_to_atoms()
+        assistant_message = choice["message"] |> create_message_from_map()
 
         updated_chat =
           chat
@@ -36,9 +35,10 @@ defmodule ChatBots.ChatApi do
     end
   end
 
-  defp convert_string_keys_to_atoms(map) do
-    map
-    |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
-    |> Enum.into(%{})
+  defp create_message_from_map(map) do
+    %Message{
+      role: map["role"],
+      content: map["content"]
+    }
   end
 end
