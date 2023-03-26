@@ -61,7 +61,10 @@ defmodule ChatBotsWeb.Test do
     assert has_element?(view, "#chat-box p", ~r/assistant.*42/)
   end
 
-  test "doesn't display system prompt", %{conn: _conn} do
+  test "doesn't display system prompt", %{conn: conn} do
+    {:ok, _view, html} = live(conn, "/")
+
+    refute html =~ "You are a helpful assistant"
   end
 
   test "displays error message returned by the API", %{conn: _conn} do

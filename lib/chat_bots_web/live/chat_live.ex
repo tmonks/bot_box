@@ -48,9 +48,11 @@ defmodule ChatBotsWeb.ChatLive do
     <!-- chat box to display messages -->
     <div id="chat-box">
       <%= for message <- @chat.messages do %>
-        <p class="p-2 m-2 text-gray-800 bg-gray-200 rounded-md">
-          <%= message.role %>: <%= message.content %>
-        </p>
+        <%= if message.role != "system" do %>
+          <p class="p-2 m-2 text-gray-800 bg-gray-200 rounded-md">
+            <%= message.role %>: <%= message.content %>
+          </p>
+        <% end %>
       <% end %>
     </div>
     """
