@@ -26,19 +26,13 @@ defmodule ChatBotsWeb.Test do
 
     refute has_element?(view, "#chat-box p", message_text)
 
-    # Set up the mock and assert the message is sent to the client as a map
-    MockClient
-    |> expect(:chat_completion, fn [model: _, messages: messages] ->
-      assert [_, user_message] = messages
-      assert user_message == %{role: "user", content: message_text}
-      api_success_fixture()
-    end)
+    expect_api_success(message_text)
 
     view
     |> form("#chat-form", %{"message" => message_text})
     |> render_submit()
 
-    assert has_element?(view, "#chat-box p", ~r/user.*Hello Bot/)
+    assert has_element?(view, "#chat-box p", ~r/You.*Hello Bot/)
   end
 
   test "can receive and view a response from the bot", %{conn: conn} do
@@ -46,19 +40,13 @@ defmodule ChatBotsWeb.Test do
 
     message_text = "Hello Bot"
 
-    # Set up the mock and assert the message is sent to the client as a map
-    MockClient
-    |> expect(:chat_completion, fn [model: _, messages: messages] ->
-      assert [_, user_message] = messages
-      assert user_message == %{role: "user", content: message_text}
-      api_success_fixture()
-    end)
+    expect_api_success(message_text)
 
     view
     |> form("#chat-form", %{"message" => message_text})
     |> render_submit()
 
-    assert has_element?(view, "#chat-box p", ~r/assistant.*42/)
+    assert has_element?(view, "#chat-box p", ~r/Test Bot.*42/)
   end
 
   test "doesn't display system prompt", %{conn: conn} do
@@ -67,6 +55,31 @@ defmodule ChatBotsWeb.Test do
     refute html =~ "You are a helpful assistant"
   end
 
+  test "displays a user-friendly role title for each message", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/")
+
+    message_text = "Hello Bot"
+
+    expect_api_success(message_text)
+
+    view
+    |> form("#chat-form", %{"message" => message_text})
+    |> render_submit()
+
+    assert has_element?(view, "#chat-box p", ~r/You.*Hello Bot/)
+    assert has_element?(view, "#chat-box p", ~r/Test Bot.*42/)
+  end
+
   test "displays error message returned by the API", %{conn: _conn} do
+  end
+
+  # Set up the mock and assert the message is sent to the client with message_text
+  defp expect_api_success(message_sent) do
+    MockClient
+    |> expect(:chat_completion, fn [model: _, messages: messages] ->
+      assert [_, user_message] = messages
+      assert user_message == %{role: "user", content: message_sent}
+      api_success_fixture()
+    end)
   end
 end

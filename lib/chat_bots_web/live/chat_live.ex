@@ -25,6 +25,14 @@ defmodule ChatBotsWeb.ChatLive do
     {:noreply, assign(socket, chat: chat)}
   end
 
+  defp format_role(role, bot) do
+    case role do
+      "assistant" -> bot.name
+      "user" -> "You"
+      _ -> role
+    end
+  end
+
   def render(assigns) do
     ~H"""
     <h1 class="mt-0 mb-2 text-5xl font-medium leading-tight text-primary">
@@ -43,14 +51,14 @@ defmodule ChatBotsWeb.ChatLive do
         class="w-full h-24 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
       >
       </textarea>
-      <button type="submit" class="w-full mt-2 btn btn-primary">Send</button>
+      <button type="submit" class="w-full mt-2 bg-success">Send</button>
     </form>
     <!-- chat box to display messages -->
     <div id="chat-box">
       <%= for message <- @chat.messages do %>
         <%= if message.role != "system" do %>
           <p class="p-2 m-2 text-gray-800 bg-gray-200 rounded-md">
-            <%= message.role %>: <%= message.content %>
+            <%= format_role(message.role, @bot) %>: <%= message.content %>
           </p>
         <% end %>
       <% end %>
