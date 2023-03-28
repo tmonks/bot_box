@@ -38,7 +38,10 @@ defmodule ChatBotsWeb.ChatLive do
     <h1 class="mt-0 mb-2 text-5xl font-medium leading-tight text-primary">
       Bot Box
     </h1>
-    <select id="bot-select">
+    <select
+      id="bot-select"
+      class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline mb-2"
+    >
       <%= for bot <- @bots do %>
         <option><%= bot.name %></option>
       <% end %>
@@ -51,7 +54,12 @@ defmodule ChatBotsWeb.ChatLive do
         class="w-full h-24 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
       >
       </textarea>
-      <button type="submit" class="w-full mt-2 bg-success">Send</button>
+      <button
+        type="submit"
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+      >
+        Send
+      </button>
     </form>
     <!-- chat box to display messages -->
     <div id="chat-box">
