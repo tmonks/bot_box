@@ -70,6 +70,12 @@ defmodule ChatBotsWeb.Test do
     assert has_element?(view, "#chat-box p", ~r/Test Bot.*42/)
   end
 
+  test "displays welcome message", %{conn: conn} do
+    {:ok, view, _html} = live(conn, "/")
+
+    assert has_element?(view, "#chat-box p", ~r/Test Bot has entered the chat/)
+  end
+
   test "displays error message returned by the API", %{conn: _conn} do
   end
 

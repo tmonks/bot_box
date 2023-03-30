@@ -7,29 +7,35 @@ defmodule ChatBotsWeb.ChatLive do
     bots = Bots.list_bots()
     bot = hd(bots)
     chat = Chats.new_chat(bot.id)
+    messages = [%{role: "info", content: "#{bot.name} has entered the chat"}]
 
     socket =
       socket
       |> assign(:bots, bots)
       |> assign(:bot, bot)
       |> assign(:chat, chat)
+      |> assign(:messages, messages)
 
     {:ok, socket}
   end
 
   def handle_event("send_message", %{"message" => message_text}, socket) do
     # chat = Chats.add_message(socket.assigns.chat, %{role: "user", content: message})
+    user_message = %{role: "user", content: message_text}
 
     {:ok, chat} = ChatBots.ChatApi.send_message(socket.assigns.chat, message_text)
+    bot_message = chat.messages |> List.last()
+    messages = socket.assigns.messages ++ [user_message, bot_message]
 
-    {:noreply, assign(socket, chat: chat)}
+    socket = assign(socket, chat: chat, messages: messages)
+    {:noreply, socket}
   end
 
-  defp format_role(role, bot) do
+  defp format_message(%{role: role, content: message_text}, bot) do
     case role do
-      "assistant" -> bot.name
-      "user" -> "You"
-      _ -> role
+      "assistant" -> "#{bot.name}: #{message_text}"
+      "user" -> "You: #{message_text}"
+      _ -> message_text
     end
   end
 
@@ -63,12 +69,10 @@ defmodule ChatBotsWeb.ChatLive do
     </form>
     <!-- chat box to display messages -->
     <div id="chat-box">
-      <%= for message <- @chat.messages do %>
-        <%= if message.role != "system" do %>
-          <p class="p-2 m-2 text-gray-800 bg-gray-200 rounded-md">
-            <%= format_role(message.role, @bot) %>: <%= message.content %>
-          </p>
-        <% end %>
+      <%= for message <- @messages do %>
+        <p class="p-2 m-2 text-gray-800 bg-gray-200 rounded-md">
+          <%= format_message(message, @bot) %>
+        </p>
       <% end %>
     </div>
     """
