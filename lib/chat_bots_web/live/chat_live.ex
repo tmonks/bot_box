@@ -19,6 +19,20 @@ defmodule ChatBotsWeb.ChatLive do
     {:ok, socket}
   end
 
+  def handle_event("select_bot", %{"bot_id" => bot_id}, socket) do
+    bot = Bots.get_bot(bot_id)
+    chat = Chats.new_chat(bot.id)
+    messages = [%{role: "info", content: "#{bot.name} has entered the chat"}]
+
+    socket =
+      socket
+      |> assign(:bot, bot)
+      |> assign(:chat, chat)
+      |> assign(:messages, messages)
+
+    {:noreply, socket}
+  end
+
   def handle_event("send_message", %{"message" => message_text}, socket) do
     # chat = Chats.add_message(socket.assigns.chat, %{role: "user", content: message})
     user_message = %{role: "user", content: message_text}
@@ -44,14 +58,17 @@ defmodule ChatBotsWeb.ChatLive do
     <h1 class="mt-0 mb-2 text-5xl font-medium leading-tight text-primary">
       Bot Box
     </h1>
-    <select
-      id="bot-select"
-      class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline mb-2"
-    >
-      <%= for bot <- @bots do %>
-        <option><%= bot.name %></option>
-      <% end %>
-    </select>
+    <form id="bot-select-form" phx-change="select_bot">
+      <select
+        id="bot-select"
+        name="bot_id"
+        class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline mb-2"
+      >
+        <%= for bot <- @bots do %>
+          <option value={bot.id}><%= bot.name %></option>
+        <% end %>
+      </select>
+    </form>
     <!-- chat form with textarea to enter message -->
     <form id="chat-form" phx-submit="send_message">
       <textarea
