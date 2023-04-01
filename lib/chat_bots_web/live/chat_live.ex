@@ -15,6 +15,7 @@ defmodule ChatBotsWeb.ChatLive do
       |> assign(:bot, bot)
       |> assign(:chat, chat)
       |> assign(:messages, messages)
+      |> assign(:loading, false)
 
     {:ok, socket}
   end
@@ -33,15 +34,23 @@ defmodule ChatBotsWeb.ChatLive do
     {:noreply, socket}
   end
 
-  def handle_event("send_message", %{"message" => message_text}, socket) do
-    # chat = Chats.add_message(socket.assigns.chat, %{role: "user", content: message})
-    user_message = %{role: "user", content: message_text}
+  def handle_event("submit_message", %{"message" => message_text}, socket) do
+    send(self(), {:send_message, message_text})
 
+    # add user message to messages
+    user_message = %{role: "user", content: message_text}
+    messages = socket.assigns.messages ++ [user_message]
+
+    socket = assign(socket, messages: messages, loading: true)
+    {:noreply, socket}
+  end
+
+  def handle_info({:send_message, message_text}, socket) do
     {:ok, chat} = ChatBots.ChatApi.send_message(socket.assigns.chat, message_text)
     bot_message = chat.messages |> List.last()
-    messages = socket.assigns.messages ++ [user_message, bot_message]
+    messages = socket.assigns.messages ++ [bot_message]
 
-    socket = assign(socket, chat: chat, messages: messages)
+    socket = assign(socket, chat: chat, messages: messages, loading: false)
     {:noreply, socket}
   end
 
@@ -70,7 +79,7 @@ defmodule ChatBotsWeb.ChatLive do
       </select>
     </form>
     <!-- chat form with textarea to enter message -->
-    <form id="chat-form" phx-submit="send_message">
+    <form id="chat-form" phx-submit="submit_message">
       <textarea
         id="message"
         name="message"
@@ -92,6 +101,10 @@ defmodule ChatBotsWeb.ChatLive do
         </p>
       <% end %>
     </div>
+    <!-- loading animation -->
+    <%= if @loading do %>
+      <div class="loader">Loading...</div>
+    <% end %>
     """
   end
 end
