@@ -78,25 +78,10 @@ defmodule ChatBotsWeb.ChatLive do
         <% end %>
       </select>
     </form>
-    <!-- chat form with textarea to enter message -->
-    <form id="chat-form" phx-submit="submit_message">
-      <textarea
-        id="message"
-        name="message"
-        class="w-full h-24 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-      >
-      </textarea>
-      <button
-        type="submit"
-        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      >
-        Send
-      </button>
-    </form>
     <!-- chat box to display messages -->
-    <div id="chat-box">
+    <div id="chat-box" class="flex flex-col">
       <%= for message <- @messages do %>
-        <p class="p-2 m-2 text-gray-800 bg-gray-200 rounded-md">
+        <p class={get_message_classes(message)}>
           <%= format_message(message, @bot) %>
         </p>
       <% end %>
@@ -105,6 +90,37 @@ defmodule ChatBotsWeb.ChatLive do
     <%= if @loading do %>
       <div class="loader">Loading...</div>
     <% end %>
+    <!-- chat form with textarea to enter message -->
+    <form id="chat-form" phx-submit="submit_message">
+      <div class="flex items-center space-x-4 p-2">
+        <textarea
+          id="message"
+          name="message"
+          rows="1"
+          placeholder="Type a messsage..."
+          class="flex-grow bg-white border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+        </textarea>
+        <button
+          type="submit"
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Send
+        </button>
+      </div>
+    </form>
     """
+  end
+
+  defp get_message_classes(message) do
+    base_classes = "p-2 my-2 rounded-lg text-sm w-auto max-w-sm"
+
+    case message.role do
+      "user" ->
+        "#{base_classes} text-white bg-blue-500 self-end"
+
+      _ ->
+        "#{base_classes} text-gray-800 bg-gray-300"
+    end
   end
 end
