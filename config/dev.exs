@@ -19,6 +19,13 @@ config :chat_bots, ChatBotsWeb.Endpoint,
     tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
   ]
 
+# Configure the database
+config :chat_bots, ChatBots.Repo,
+  database: Path.expand("../chatbots_dev.db", Path.dirname(__ENV__.file)),
+  pool_size: 5,
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed

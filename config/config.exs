@@ -7,6 +7,10 @@
 # General application configuration
 import Config
 
+config :chat_bots,
+  namespace: ChatBots,
+  ecto_repos: [ChatBots.Repo]
+
 # Configures the endpoint
 config :chat_bots, ChatBotsWeb.Endpoint,
   url: [host: "localhost"],

@@ -45,7 +45,10 @@ defmodule ChatBots.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:openai, "~> 0.3.1"},
-      {:mox, "~> 1.0", only: :test}
+      {:mox, "~> 1.0", only: :test},
+      {:ecto_sql, "~> 3.6"},
+      {:ecto_sqlite3, "~> 0.9.1"},
+      {:phoenix_ecto, "~> 4.4"}
     ]
   end
 

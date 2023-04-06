@@ -48,6 +48,11 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base
 
+  # configure the database
+  config :chat_bots, ChatBots.Repo,
+    database: '/data/chatbots.db',
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key

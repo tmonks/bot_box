@@ -7,6 +7,12 @@ config :chat_bots, ChatBotsWeb.Endpoint,
   secret_key_base: "XnEW3P7d5iq2ANIHOIOgFjszS4r5TvOcpF2jBVhng5G/hlDCE1EXCWPopnCJTVi5",
   server: false
 
+# Configure your database
+config :chat_bots, ChatBots.Repo,
+  database: Path.expand("../chatbots_test.db", Path.dirname(__ENV__.file)),
+  pool_size: 5,
+  pool: Ecto.Adapters.SQL.Sandbox
+
 # Print only warnings and errors during test
 config :logger, level: :warning
 
