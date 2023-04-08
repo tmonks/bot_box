@@ -13,7 +13,9 @@ defmodule ChatBots.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: ChatBots.PubSub},
       # Start the Endpoint (http/https)
-      ChatBotsWeb.Endpoint
+      ChatBotsWeb.Endpoint,
+      # Start the Repo
+      ChatBots.Repo
       # Start a worker by calling: ChatBots.Worker.start_link(arg)
       # {ChatBots.Worker, arg}
     ]
