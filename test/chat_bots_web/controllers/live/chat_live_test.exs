@@ -1,28 +1,28 @@
 defmodule ChatBotsWeb.Test do
-  use ChatBotsWeb.ConnCase, async: true
+  use ChatBotsWeb.ConnCase, async: false
   import Mox
   import ChatBots.Fixtures
   import Phoenix.LiveViewTest
   alias ChatBots.OpenAi.MockClient
-  alias ChatBots.Bots
 
   setup :verify_on_exit!
 
   test "renders the page", %{conn: conn} do
+    _bot = bot_fixture()
     {:ok, _view, html} = live(conn, "/")
     assert html =~ "Bot Box"
   end
 
   test "has a select to choose the bot", %{conn: conn} do
+    bot = bot_fixture()
     {:ok, view, _html} = live(conn, "/")
-
-    bot = Bots.list_bots() |> List.first()
 
     assert has_element?(view, "#bot-select")
     assert has_element?(view, "#bot-select option", bot.name)
   end
 
   test "can enter a message and see it appear in the chat", %{conn: conn} do
+    _bot = bot_fixture()
     {:ok, view, _html} = live(conn, "/")
 
     message_text = "Hello Bot"
@@ -39,10 +39,10 @@ defmodule ChatBotsWeb.Test do
   end
 
   test "can receive and view a response from the bot", %{conn: conn} do
+    bot = bot_fixture()
     {:ok, view, _html} = live(conn, "/")
 
     message_text = "Hello Bot"
-    bot = Bots.list_bots() |> List.first()
 
     expect_api_success(message_text)
 
@@ -54,15 +54,16 @@ defmodule ChatBotsWeb.Test do
   end
 
   test "doesn't display system prompt", %{conn: conn} do
+    _bot = bot_fixture(%{name: "Test Bot", directive: "You are a helpful assistant"})
     {:ok, _view, html} = live(conn, "/")
 
     refute html =~ "You are a helpful assistant"
   end
 
   test "displays a user-friendly role title for each message", %{conn: conn} do
+    bot = bot_fixture()
     {:ok, view, _html} = live(conn, "/")
 
-    bot = Bots.list_bots() |> List.first()
     message_text = "Hello Bot"
 
     expect_api_success(message_text)
@@ -76,19 +77,16 @@ defmodule ChatBotsWeb.Test do
   end
 
   test "displays welcome message", %{conn: conn} do
+    bot = bot_fixture()
     {:ok, view, _html} = live(conn, "/")
-
-    bot = Bots.list_bots() |> List.first()
 
     assert has_element?(view, "#chat-box p", ~r/#{bot.name} has entered the chat/)
   end
 
   test "selecting a different bot clears the chat", %{conn: conn} do
+    _bot1 = bot_fixture(name: "Bot 1", directive: "some directive 1")
+    bot2 = bot_fixture(name: "Bot 2", directive: "some directive 2")
     {:ok, view, _html} = live(conn, "/")
-
-    bots = Bots.list_bots()
-    bot1 = bots |> List.first()
-    bot2 = bots |> Enum.at(1)
 
     message_text = "Hello Bot"
 
@@ -98,18 +96,18 @@ defmodule ChatBotsWeb.Test do
     |> form("#chat-form", %{"message" => message_text})
     |> render_submit()
 
+    assert has_element?(view, "#chat-box p", ~r/Bot 1 has entered the chat/)
     assert has_element?(view, "#chat-box p", ~r/You.*Hello Bot/)
-    assert has_element?(view, "#chat-box p", ~r/#{bot1.name}.*42/)
-    assert has_element?(view, "#chat-box p", ~r/#{bot1.name} has entered the chat/)
+    assert has_element?(view, "#chat-box p", ~r/Bot 1.*42/)
 
     view
     |> form("#bot-select-form", %{"bot_id" => bot2.id})
     |> render_change()
 
     refute has_element?(view, "#chat-box p", ~r/You.*Hello Bot/)
-    refute has_element?(view, "#chat-box p", ~r/#{bot1.name}.*42/)
-    refute has_element?(view, "#chat-box p", ~r/#{bot1.name} has entered the chat/)
-    assert has_element?(view, "#chat-box p", ~r/#{bot2.name} has entered the chat/)
+    refute has_element?(view, "#chat-box p", ~r/Bot 1.*42/)
+    refute has_element?(view, "#chat-box p", ~r/Bot 1 has entered the chat/)
+    assert has_element?(view, "#chat-box p", ~r/Bot 2 has entered the chat/)
   end
 
   test "displays error message returned by the API", %{conn: _conn} do

@@ -1,5 +1,5 @@
 defmodule ChatBots.ChatApiTest do
-  use ExUnit.Case
+  use ChatBots.DataCase
 
   import Mox
   import ChatBots.Fixtures
@@ -7,12 +7,14 @@ defmodule ChatBots.ChatApiTest do
   alias ChatBots.ChatApi
   alias ChatBots.Chats
   alias ChatBots.Chats.Message
+  import ChatBots.Fixtures
 
   # mocks need to be verified when the test exits
   setup :verify_on_exit!
 
   test "send_message/2 adds a response to the chat" do
-    chat = Chats.new_chat("test_bot")
+    bot = bot_fixture()
+    chat = Chats.new_chat(bot.id)
     message_text = "What is the meaning of life?"
 
     # Set up the mock and assert the message is sent to the client as a map
@@ -32,7 +34,8 @@ defmodule ChatBots.ChatApiTest do
   end
 
   test "send_message/2 returns an error tuple if the client returns an error" do
-    chat = Chats.new_chat("test_bot")
+    bot = bot_fixture()
+    chat = Chats.new_chat(bot.id)
     message_text = "What is the meaning of life?"
 
     # Set up the mock and assert the message is sent to the client as a map

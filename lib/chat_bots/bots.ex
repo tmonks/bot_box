@@ -1,19 +1,22 @@
 defmodule ChatBots.Bots do
+  alias ChatBots.Repo
   alias ChatBots.Bots.Bot
+  import Ecto.Query
 
   @doc """
   Returns the list of bots.
   """
   def list_bots do
-    [make_bot(:test_bot), make_bot(:glados)]
+    Bot |> Repo.all()
   end
 
   @doc """
   get_box/1 returns the bot with the given id.
   """
   def get_bot(id) do
-    list_bots()
-    |> Enum.find(&(&1.id == id))
+    Bot
+    |> where([b], b.id == ^id)
+    |> Repo.one()
   end
 
   defp make_bot(:test_bot) do

@@ -1,4 +1,7 @@
 defmodule ChatBots.Fixtures do
+  alias ChatBots.Repo
+  alias ChatBots.Bots.Bot
+
   def api_success_fixture do
     {:ok,
      %{
@@ -39,5 +42,16 @@ defmodule ChatBots.Fixtures do
        "param" => nil,
        "type" => "invalid_request_error"
      }}
+  end
+
+  def bot_fixture(attrs \\ %{}) do
+    Bot
+    |> struct!(bot_attrs(attrs))
+    |> Repo.insert!()
+  end
+
+  def bot_attrs(attrs) do
+    attrs
+    |> Enum.into(%{name: "Test Bot", directive: "You are a helpful assistant."})
   end
 end
