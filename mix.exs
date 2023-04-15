@@ -48,7 +48,8 @@ defmodule ChatBots.MixProject do
       {:mox, "~> 1.0", only: :test},
       {:ecto_sql, "~> 3.6"},
       {:ecto_sqlite3, "~> 0.9.1"},
-      {:phoenix_ecto, "~> 4.4"}
+      {:phoenix_ecto, "~> 4.4"},
+      {:dotenv, "~> 3.0.0", only: [:dev, :test]}
     ]
   end
 
