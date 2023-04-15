@@ -35,6 +35,7 @@ defmodule ChatBotsWeb.ChatLive do
   end
 
   def handle_event("submit_message", %{"message" => message_text}, socket) do
+    # send a message to self to trigger the API call in the background
     send(self(), {:send_message, message_text})
 
     # add user message to messages
@@ -46,11 +47,18 @@ defmodule ChatBotsWeb.ChatLive do
   end
 
   def handle_info({:send_message, message_text}, socket) do
-    {:ok, chat} = ChatBots.ChatApi.send_message(socket.assigns.chat, message_text)
-    bot_message = chat.messages |> List.last()
-    messages = socket.assigns.messages ++ [bot_message]
+    socket =
+      case ChatBots.ChatApi.send_message(socket.assigns.chat, message_text) do
+        {:ok, chat} ->
+          new_message = chat.messages |> List.last()
+          messages = socket.assigns.messages ++ [new_message]
+          assign(socket, chat: chat, messages: messages, loading: false)
 
-    socket = assign(socket, chat: chat, messages: messages, loading: false)
+        {:error, error} ->
+          messages = socket.assigns.messages ++ [%{role: "error", content: error["message"]}]
+          assign(socket, messages: messages, loading: false)
+      end
+
     {:noreply, socket}
   end
 
@@ -58,6 +66,7 @@ defmodule ChatBotsWeb.ChatLive do
     case role do
       "assistant" -> "#{bot.name}: #{message_text}"
       "user" -> "You: #{message_text}"
+      "error" -> "Error: #{message_text}"
       _ -> message_text
     end
   end

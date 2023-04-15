@@ -110,7 +110,18 @@ defmodule ChatBotsWeb.Test do
     assert has_element?(view, "#chat-box p", ~r/Bot 2 has entered the chat/)
   end
 
-  test "displays error message returned by the API", %{conn: _conn} do
+  test "displays error message returned by the API in the chat area", %{conn: conn} do
+    _bot = bot_fixture()
+
+    {:ok, view, _html} = live(conn, "/")
+
+    expect_api_failure()
+
+    view
+    |> form("#chat-form", %{"message" => "Hello"})
+    |> render_submit()
+
+    assert has_element?(view, "#chat-box p", ~r/Error.*Invalid request/)
   end
 
   # Set up the mock and assert the message is sent to the client with message_text
@@ -121,5 +132,11 @@ defmodule ChatBotsWeb.Test do
       assert user_message == %{role: "user", content: message_sent}
       api_success_fixture()
     end)
+  end
+
+  # Set up the mock to return an error response
+  defp expect_api_failure() do
+    MockClient
+    |> expect(:chat_completion, fn _ -> api_error_fixture() end)
   end
 end
