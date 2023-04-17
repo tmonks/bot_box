@@ -3,8 +3,8 @@ defmodule ChatBots.Bots.Bot do
   import Ecto.Changeset
 
   schema "bots" do
-    field :directive, :string
-    field :name, :string
+    field(:directive, :string)
+    field(:name, :string)
 
     timestamps()
   end
