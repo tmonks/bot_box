@@ -6,6 +6,16 @@ defmodule ChatBotsWeb.Test do
   alias ChatBots.OpenAi.MockClient
 
   setup :verify_on_exit!
+  setup :login_user
+
+  test "returns 401 when not logged in", %{conn: conn} do
+    conn =
+      conn
+      |> delete_req_header("authorization")
+      |> get("/")
+
+    assert response(conn, 401)
+  end
 
   test "renders the page", %{conn: conn} do
     _bot = bot_fixture()

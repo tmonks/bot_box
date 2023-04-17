@@ -53,6 +53,9 @@ if config_env() == :prod do
     database: '/data/chatbots.db',
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
 
+  # get password from env (will raise if not set)
+  config :chat_bots, :auth, password: System.fetch_env!("USER_PASSWORD")
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key

@@ -16,6 +16,7 @@ defmodule ChatBotsWeb.ConnCase do
   """
 
   use ExUnit.CaseTemplate
+  import Plug.Conn
 
   using do
     quote do
@@ -34,5 +35,18 @@ defmodule ChatBotsWeb.ConnCase do
   setup tags do
     ChatBots.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
+  end
+
+  def login_user(%{conn: conn}) do
+    auth_header =
+      Application.get_env(:chat_bots, :auth)
+      |> Keyword.take([:username, :password])
+      |> Keyword.values()
+      |> Enum.join(":")
+      |> Base.encode64()
+
+    conn = put_req_header(conn, "authorization", "Basic #{auth_header}")
+
+    %{conn: conn}
   end
 end

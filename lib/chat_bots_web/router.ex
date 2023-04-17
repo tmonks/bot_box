@@ -8,6 +8,7 @@ defmodule ChatBotsWeb.Router do
     plug :put_root_layout, {ChatBotsWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :auth
   end
 
   pipeline :api do
@@ -18,6 +19,15 @@ defmodule ChatBotsWeb.Router do
     pipe_through :browser
 
     live "/", ChatLive, :chat
+  end
+
+  defp auth(conn, _opts) do
+    config = Application.get_env(:chat_bots, :auth)
+
+    Plug.BasicAuth.basic_auth(conn,
+      username: Keyword.fetch!(config, :username),
+      password: Keyword.fetch!(config, :password)
+    )
   end
 
   # Other scopes may use custom stacks.
