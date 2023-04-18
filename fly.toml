@@ -13,6 +13,10 @@ processes = []
   PHX_HOST = "bot-box.fly.dev"
   PORT = "8080"
 
+[mounts]
+  source="bb_data"
+  destination="/data"
+
 [experimental]
   auto_rollback = true
 
