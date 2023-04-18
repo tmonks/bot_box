@@ -20,8 +20,7 @@ processes = []
   autostart = true
   autostop = false
   http_checks = []
-  internal_port = 8080
-  processes = ["app"]
+  internal_port = 4000
   protocol = "tcp"
   script_checks = []
   [services.concurrency]
@@ -39,7 +38,7 @@ processes = []
     port = 443
 
   [[services.tcp_checks]]
-    grace_period = "1s"
+    grace_period = "30s" # allow time for startup
     interval = "15s"
-    restart_limit = 0
+    restart_limit = 6
     timeout = "2s"
