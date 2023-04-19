@@ -12,6 +12,9 @@ defmodule ChatBots.Application do
       Mix.Task.run("loadconfig")
     end
 
+    # Run migrations
+    ChatBots.Release.migrate()
+
     children = [
       # Start the Telemetry supervisor
       ChatBotsWeb.Telemetry,
