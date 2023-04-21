@@ -50,7 +50,7 @@ if config_env() == :prod do
 
   # configure the database
   config :chat_bots, ChatBots.Repo,
-    database: '/data/chatbots.db',
+    database: "/data/chatbots.db",
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
 
   # get password from env (will raise if not set)
