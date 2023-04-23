@@ -1,4 +1,8 @@
 import Config
+import Dotenvy
+
+# load environment variables from .env (system will override .env)
+source!([".env", System.get_env()])
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
@@ -20,10 +24,13 @@ if System.get_env("PHX_SERVER") do
   config :chat_bots, ChatBotsWeb.Endpoint, server: true
 end
 
+# dev/test defaults for admin auth
+config :chat_bots, :auth, username: "bbuser", password: "Password123!"
+
 # OpenAI API configuration
 config :openai,
-  api_key: System.get_env("OPENAI_API_KEY"),
-  organization_key: System.get_env("OPENAI_ORG_KEY"),
+  api_key: env!("OPENAI_API_KEY"),
+  organization_key: env!("OPENAI_ORG_KEY"),
   http_options: [recv_timeout: 30_000]
 
 if config_env() == :prod do
