@@ -51,12 +51,6 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# OpenAI API configuration
-config :openai,
-  api_key: System.get_env("OPENAI_API_KEY"),
-  organization_key: System.get_env("OPENAI_ORG_KEY"),
-  http_options: [recv_timeout: 30_000]
-
 # dev/test defaults for admin auth
 config :chat_bots, :auth, username: "bbuser", password: "Password123!"
 

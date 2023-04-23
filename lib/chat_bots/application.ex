@@ -4,14 +4,10 @@ defmodule ChatBots.Application do
   @moduledoc false
 
   use Application
+  import Config, only: [config_env: 0]
 
   @impl true
   def start(_type, _args) do
-    unless Mix.env() == :prod do
-      Dotenv.load()
-      Mix.Task.run("loadconfig")
-    end
-
     # Run migrations
     ChatBots.Release.migrate()
 
