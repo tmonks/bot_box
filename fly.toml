@@ -8,7 +8,6 @@ processes = []
 
 [env]
   PHX_HOST = "bot-box.fly.dev"
-  PORT = "8080"
 
 [mounts]
   source="bb_data"
