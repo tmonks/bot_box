@@ -35,6 +35,10 @@ defmodule ChatBots.Fixtures do
      }}
   end
 
+  def api_timeout_fixture do
+    {:error, :timeout}
+  end
+
   def api_unauthorized_fixture do
     {:error,
      %{

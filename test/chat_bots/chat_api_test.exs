@@ -44,4 +44,16 @@ defmodule ChatBots.ChatApiTest do
     assert {:error, error} = ChatApi.send_message(chat, message_text)
     assert error["message"] == "Invalid request"
   end
+
+  test "send_message/2 can handle a :timeout error" do
+    bot = bot_fixture()
+    chat = Chats.new_chat(bot.id)
+    message_text = "What is the meaning of life?"
+
+    # Set up the mock and assert the message is sent to the client as a map
+    MockClient |> expect(:chat_completion, fn _ -> api_timeout_fixture() end)
+
+    assert {:error, error} = ChatApi.send_message(chat, message_text)
+    assert error["message"] == "Your request timed out"
+  end
 end
