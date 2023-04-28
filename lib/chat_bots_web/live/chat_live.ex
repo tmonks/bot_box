@@ -82,9 +82,7 @@ defmodule ChatBotsWeb.ChatLive do
         name="bot_id"
         class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline mb-2"
       >
-        <%= for bot <- @bots do %>
-          <option value={bot.id}><%= bot.name %></option>
-        <% end %>
+        <%= options_for_select(bot_options(@bots), @bot.id) %>
       </select>
     </form>
     <!-- chat box to display messages -->
@@ -132,4 +130,6 @@ defmodule ChatBotsWeb.ChatLive do
         "#{base_classes} text-gray-800 bg-gray-300"
     end
   end
+
+  defp bot_options(bots), do: Enum.map(bots, & {&1.name, &1.id})
 end

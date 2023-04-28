@@ -120,6 +120,26 @@ defmodule ChatBotsWeb.Test do
     assert has_element?(view, "#chat-box p", ~r/Bot 2 has entered the chat/)
   end
 
+  test "retains selected bot", %{conn: conn} do
+    _bot1 = bot_fixture(name: "Bot 1", directive: "some directive 1")
+    bot2 = bot_fixture(name: "Bot 2", directive: "some directive 2")
+    {:ok, view, _html} = live(conn, "/")
+
+    view
+    |> form("#bot-select-form", %{"bot_id" => bot2.id})
+    |> render_change()
+
+    assert has_element?(view, "#bot-select option[selected]", bot2.name)
+
+    expect_api_success("Hello")
+
+    view
+    |> form("#chat-form", %{"message" => "Hello"})
+    |> render_submit()
+
+    assert has_element?(view, "#bot-select option[selected]", bot2.name)
+  end
+
   test "displays error message returned by the API in the chat area", %{conn: conn} do
     _bot = bot_fixture()
 
