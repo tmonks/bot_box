@@ -35,7 +35,7 @@ defmodule ChatBotsWeb.Test do
     _bot = bot_fixture()
     {:ok, view, _html} = live(conn, "/")
 
-    message_text = "Hello Bot"
+    message_text = "Hello!"
 
     refute has_element?(view, "#chat-box p", message_text)
 
@@ -45,22 +45,22 @@ defmodule ChatBotsWeb.Test do
     |> form("#chat-form", %{"message" => message_text})
     |> render_submit()
 
-    assert has_element?(view, "#chat-box p", ~r/You.*Hello Bot/)
+    assert has_element?(view, "#chat-box p.user-bubble", ~r/Hello!/)
   end
 
   test "can receive and view a response from the bot", %{conn: conn} do
-    bot = bot_fixture()
+    bot_fixture()
     {:ok, view, _html} = live(conn, "/")
 
-    message_text = "Hello Bot"
+    message_text = "I am a user"
 
-    expect_api_success(message_text)
+    expect_api_success(message_text, "I am a bot")
 
     view
     |> form("#chat-form", %{"message" => message_text})
     |> render_submit()
 
-    assert has_element?(view, "#chat-box p", ~r/#{bot.name}.*42/)
+    assert has_element?(view, "#chat-box p.bot-bubble", ~r/I am a bot/)
   end
 
   test "doesn't display system prompt", %{conn: conn} do
@@ -71,19 +71,19 @@ defmodule ChatBotsWeb.Test do
   end
 
   test "displays a user-friendly role title for each message", %{conn: conn} do
-    bot = bot_fixture()
+    bot_fixture()
     {:ok, view, _html} = live(conn, "/")
 
-    message_text = "Hello Bot"
+    message_text = "I am a user"
 
-    expect_api_success(message_text)
+    expect_api_success(message_text, "I am a bot")
 
     view
     |> form("#chat-form", %{"message" => message_text})
     |> render_submit()
 
-    assert has_element?(view, "#chat-box p", ~r/You.*Hello Bot/)
-    assert has_element?(view, "#chat-box p", ~r/#{bot.name}.*42/)
+    assert has_element?(view, "#chat-box p.user-bubble", ~r/I am a user/)
+    assert has_element?(view, "#chat-box p.bot-bubble", ~r/I am a bot/)
   end
 
   test "displays welcome message", %{conn: conn} do
@@ -98,25 +98,25 @@ defmodule ChatBotsWeb.Test do
     bot2 = bot_fixture(name: "Bot 2", directive: "some directive 2")
     {:ok, view, _html} = live(conn, "/")
 
-    message_text = "Hello Bot"
+    message_text = "I am a user"
 
-    expect_api_success(message_text)
+    expect_api_success(message_text, "I am a bot")
 
     view
     |> form("#chat-form", %{"message" => message_text})
     |> render_submit()
 
     assert has_element?(view, "#chat-box p", ~r/Bot 1 has entered the chat/)
-    assert has_element?(view, "#chat-box p", ~r/You.*Hello Bot/)
-    assert has_element?(view, "#chat-box p", ~r/Bot 1.*42/)
+    assert has_element?(view, "#chat-box p.user-bubble", ~r/I am a user/)
+    assert has_element?(view, "#chat-box p.bot-bubble", ~r/I am a bot/)
 
     view
     |> form("#bot-select-form", %{"bot_id" => bot2.id})
     |> render_change()
 
-    refute has_element?(view, "#chat-box p", ~r/You.*Hello Bot/)
-    refute has_element?(view, "#chat-box p", ~r/Bot 1.*42/)
     refute has_element?(view, "#chat-box p", ~r/Bot 1 has entered the chat/)
+    refute has_element?(view, "#chat-box p", ~r/I am a user/)
+    refute has_element?(view, "#chat-box p", ~r/I am a bot/)
     assert has_element?(view, "#chat-box p", ~r/Bot 2 has entered the chat/)
   end
 
@@ -154,13 +154,28 @@ defmodule ChatBotsWeb.Test do
     assert has_element?(view, "#chat-box p", ~r/Error.*Invalid request/)
   end
 
+  test "breaks up mult-line responses into multiple chat bubbles", %{conn: conn} do
+    bot_fixture()
+    {:ok, view, _html} = live(conn, "/")
+
+    message_text = "Hello"
+    expect_api_success(message_text, "first line\n\nsecond line")
+
+    view
+    |> form("#chat-form", %{"message" => message_text})
+    |> render_submit()
+
+    assert has_element?(view, "p.bot-bubble", ~r"\Afirst line\z")
+    assert has_element?(view, "p.bot-bubble", ~r"\Asecond line\z")
+  end
+
   # Set up the mock and assert the message is sent to the client with message_text
-  defp expect_api_success(message_sent) do
+  defp expect_api_success(message_sent, message_received \\ "42") do
     MockClient
     |> expect(:chat_completion, fn [model: _, messages: messages] ->
       assert [_, user_message] = messages
       assert user_message == %{role: "user", content: message_sent}
-      api_success_fixture()
+      api_success_fixture(message_received)
     end)
   end
 

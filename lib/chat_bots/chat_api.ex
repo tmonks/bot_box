@@ -30,9 +30,11 @@ defmodule ChatBots.ChatApi do
 
         {:ok, updated_chat}
 
-      {:error, :timeout} -> {:error, %{"message" => "Your request timed out"}}
+      {:error, :timeout} ->
+        {:error, %{"message" => "Your request timed out"}}
 
-      {:error, error} -> {:error, error["error"]}
+      {:error, error} ->
+        {:error, error["error"]}
     end
   end
 

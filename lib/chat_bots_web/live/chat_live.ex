@@ -62,15 +62,6 @@ defmodule ChatBotsWeb.ChatLive do
     {:noreply, socket}
   end
 
-  defp format_message(%{role: role, content: message_text}, bot) do
-    case role do
-      "assistant" -> "#{bot.name}: #{message_text}"
-      "user" -> "You: #{message_text}"
-      "error" -> "Error: #{message_text}"
-      _ -> message_text
-    end
-  end
-
   def render(assigns) do
     ~H"""
     <h1 class="mt-0 mb-2 text-5xl font-medium leading-tight text-primary">
@@ -88,9 +79,9 @@ defmodule ChatBotsWeb.ChatLive do
     <!-- chat box to display messages -->
     <div id="chat-box" class="flex flex-col">
       <%= for message <- @messages do %>
-        <p class={get_message_classes(message)}>
-          <%= format_message(message, @bot) %>
-        </p>
+        <%= for line <- String.split(message.content, "\n\n") do %>
+          <.message_bubble role={message.role} message_text={line} />
+        <% end %>
       <% end %>
     </div>
     <!-- loading animation -->
@@ -99,7 +90,7 @@ defmodule ChatBotsWeb.ChatLive do
     <% end %>
     <!-- chat form with textarea to enter message -->
     <form id="chat-form" phx-submit="submit_message">
-      <div class="flex items-center space-x-4 p-2">
+      <div class="flex items-center space-x-4 pt-2">
         <textarea
           id="message"
           name="message"
@@ -119,17 +110,29 @@ defmodule ChatBotsWeb.ChatLive do
     """
   end
 
-  defp get_message_classes(message) do
+  defp message_bubble(%{role: "error"} = assigns) do
+    ~H"""
+    <p class={get_message_classes(@role)}>Error: <%= @message_text %></p>
+    """
+  end
+
+  defp message_bubble(assigns) do
+    ~H"""
+    <p class={get_message_classes(@role)}><%= @message_text %></p>
+    """
+  end
+
+  defp get_message_classes(role) do
     base_classes = "p-2 my-2 rounded-lg text-sm w-auto max-w-sm"
 
-    case message.role do
+    case role do
       "user" ->
-        "#{base_classes} text-white bg-blue-500 self-end"
+        "#{base_classes} user-bubble text-white bg-blue-500 self-end"
 
       _ ->
-        "#{base_classes} text-gray-800 bg-gray-300"
+        "#{base_classes} bot-bubble text-gray-800 bg-gray-300"
     end
   end
 
-  defp bot_options(bots), do: Enum.map(bots, & {&1.name, &1.id})
+  defp bot_options(bots), do: Enum.map(bots, &{&1.name, &1.id})
 end

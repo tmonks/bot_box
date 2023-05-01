@@ -2,7 +2,7 @@ defmodule ChatBots.Fixtures do
   alias ChatBots.Repo
   alias ChatBots.Bots.Bot
 
-  def api_success_fixture do
+  def api_success_fixture(response_text) do
     {:ok,
      %{
        choices: [
@@ -10,7 +10,7 @@ defmodule ChatBots.Fixtures do
            "finish_reason" => "stop",
            "index" => 0,
            "message" => %{
-             "content" => "42",
+             "content" => response_text,
              "role" => "assistant"
            }
          }

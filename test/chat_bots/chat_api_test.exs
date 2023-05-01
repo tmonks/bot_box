@@ -23,7 +23,7 @@ defmodule ChatBots.ChatApiTest do
       assert [system_prompt, user_prompt] = messages
       assert system_prompt == %{role: "system", content: "You are a helpful assistant."}
       assert user_prompt == %{role: "user", content: message_text}
-      api_success_fixture()
+      api_success_fixture("42")
     end)
 
     {:ok, updated_chat} = ChatApi.send_message(chat, message_text)
