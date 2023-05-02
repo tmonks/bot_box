@@ -123,7 +123,7 @@ defmodule ChatBotsWeb.ChatLive do
   end
 
   defp get_message_classes(role) do
-    base_classes = "p-2 my-2 rounded-lg text-sm w-auto max-w-sm"
+    base_classes = "p-2 my-2 rounded-lg text-sm w-auto max-w-md"
 
     case role do
       "user" ->
