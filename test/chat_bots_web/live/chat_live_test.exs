@@ -1,4 +1,4 @@
-defmodule ChatBotsWeb.Test do
+defmodule ChatBotsWeb.ChatLiveTest do
   use ChatBotsWeb.ConnCase, async: false
   import Mox
   import ChatBots.Fixtures
