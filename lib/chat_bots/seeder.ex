@@ -2,11 +2,19 @@ defmodule ChatBots.Seeder do
   alias ChatBots.Repo
   alias ChatBots.Bots.Bot
 
+  def reset do
+    clear()
+    add_bots()
+  end
+
   def clear do
+    IO.puts("Clearing bots...")
     Bot |> Repo.delete_all()
   end
 
-  def run do
+  def add_bots do
+    IO.puts("Adding bots...")
+
     bots = [
       %Bot{
         name: "Olaf",
