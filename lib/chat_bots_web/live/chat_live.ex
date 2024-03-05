@@ -2,19 +2,21 @@ defmodule ChatBotsWeb.ChatLive do
   use ChatBotsWeb, :live_view
   alias ChatBots.Bots
   alias ChatBots.Chats
+  alias ChatBots.Chats.Bubble
+  alias ChatBots.Parser
 
   def mount(_params, _session, socket) do
     bots = Bots.list_bots()
     bot = hd(bots)
     chat = Chats.new_chat(bot.id)
-    messages = [%{role: "info", content: "#{bot.name} has entered the chat"}]
+    chat_items = [%Bubble{type: "info", text: "#{bot.name} has entered the chat"}]
 
     socket =
       socket
       |> assign(:bots, bots)
       |> assign(:bot, bot)
       |> assign(:chat, chat)
-      |> assign(:messages, messages)
+      |> assign(:chat_items, chat_items)
       |> assign(:loading, false)
 
     {:ok, socket}
@@ -23,13 +25,13 @@ defmodule ChatBotsWeb.ChatLive do
   def handle_event("select_bot", %{"bot_id" => bot_id}, socket) do
     bot = Bots.get_bot(bot_id)
     chat = Chats.new_chat(bot.id)
-    messages = [%{role: "info", content: "#{bot.name} has entered the chat"}]
+    chat_items = [%{type: "info", text: "#{bot.name} has entered the chat"}]
 
     socket =
       socket
       |> assign(:bot, bot)
       |> assign(:chat, chat)
-      |> assign(:messages, messages)
+      |> assign(:chat_items, chat_items)
 
     {:noreply, socket}
   end
@@ -38,11 +40,11 @@ defmodule ChatBotsWeb.ChatLive do
     # send a message to self to trigger the API call in the background
     send(self(), {:send_message, message_text})
 
-    # add user message to messages
-    user_message = %{role: "user", content: message_text}
-    messages = socket.assigns.messages ++ [user_message]
+    # add user message to chat_items
+    user_message = %Bubble{type: "user", text: message_text}
+    chat_items = socket.assigns.chat_items ++ [user_message]
 
-    socket = assign(socket, messages: messages, loading: true)
+    socket = assign(socket, chat_items: chat_items, loading: true)
     {:noreply, socket}
   end
 
@@ -50,13 +52,15 @@ defmodule ChatBotsWeb.ChatLive do
     socket =
       case ChatBots.ChatApi.send_message(socket.assigns.chat, message_text) do
         {:ok, chat} ->
-          new_message = chat.messages |> List.last()
-          messages = socket.assigns.messages ++ [new_message]
-          assign(socket, chat: chat, messages: messages, loading: false)
+          bubble = chat.messages |> List.last() |> Parser.parse()
+          chat_items = socket.assigns.chat_items ++ [bubble]
+          assign(socket, chat: chat, chat_items: chat_items, loading: false)
 
         {:error, error} ->
-          messages = socket.assigns.messages ++ [%{role: "error", content: error["message"]}]
-          assign(socket, messages: messages, loading: false)
+          chat_items =
+            socket.assigns.chat_items ++ [%Bubble{type: "error", text: error["message"]}]
+
+          assign(socket, chat_items: chat_items, loading: false)
       end
 
     {:noreply, socket}
@@ -76,11 +80,11 @@ defmodule ChatBotsWeb.ChatLive do
         <%= options_for_select(bot_options(@bots), @bot.id) %>
       </select>
     </form>
-    <!-- chat box to display messages -->
+    <!-- chat box to display chat_items -->
     <div id="chat-box" class="flex flex-col">
-      <%= for message <- @messages do %>
-        <%= for line <- String.split(message.content, "\n\n") do %>
-          <.message_bubble role={message.role} message_text={line} />
+      <%= for chat_item <- @chat_items do %>
+        <%= for line <- String.split(chat_item.text, "\n\n") do %>
+          <.message_bubble type={chat_item.type} text={line} />
         <% end %>
       <% end %>
     </div>
@@ -110,22 +114,22 @@ defmodule ChatBotsWeb.ChatLive do
     """
   end
 
-  defp message_bubble(%{role: "error"} = assigns) do
+  defp message_bubble(%{type: "error"} = assigns) do
     ~H"""
-    <p class={get_message_classes(@role)}>Error: <%= @message_text %></p>
+    <p class={get_message_classes(@type)}>Error: <%= @text %></p>
     """
   end
 
   defp message_bubble(assigns) do
     ~H"""
-    <p class={get_message_classes(@role)}><%= @message_text %></p>
+    <p class={get_message_classes(@type)}><%= @text %></p>
     """
   end
 
-  defp get_message_classes(role) do
+  defp get_message_classes(type) do
     base_classes = "p-2 my-2 rounded-lg text-sm w-auto max-w-md"
 
-    case role do
+    case type do
       "user" ->
         "#{base_classes} user-bubble text-white bg-blue-500 self-end"
 

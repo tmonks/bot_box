@@ -10,8 +10,8 @@ defmodule ChatBots.Parser do
     # if valid JSON, parse the JSON
     content =
       case Jason.decode(content) do
-        {:ok, decoded} -> decoded["response"]
-        {:error, _} -> content
+        {:ok, %{"response" => response}} -> response
+        {_, _} -> content
       end
 
     %Bubble{type: "bot", text: content}
