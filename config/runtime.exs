@@ -33,6 +33,9 @@ config :openai,
   organization_key: env!("OPENAI_ORG_KEY"),
   http_options: [recv_timeout: 30_000]
 
+# Stability.ai configuration
+config :chat_bots, stability_ai_api_key: env!("STABILITY_AI_API_KEY")
+
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
@@ -68,6 +71,9 @@ if config_env() == :prod do
 
   # get password from env (will raise if not set)
   config :chat_bots, :auth, password: System.fetch_env!("USER_PASSWORD")
+
+  # path for downloading images
+  config :chat_bots, download_path: "/data/images"
 
   # ## SSL Support
   #
