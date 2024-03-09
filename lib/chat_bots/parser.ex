@@ -9,7 +9,7 @@ defmodule ChatBots.Parser do
   """
   def parse(%{content: content}) do
     case Jason.decode(content) do
-      {:ok, content_map} -> gather_chat_items(content_map)
+      {:ok, %{"text" => _} = content_map} -> gather_chat_items(content_map)
       {_, _} -> [parse_chat_item(content)]
     end
   end

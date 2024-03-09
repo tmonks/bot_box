@@ -15,6 +15,15 @@ defmodule ChatBots.ParserTest do
     assert [%Bubble{type: "bot", text: "Hello, world!"}] = Parser.parse(response)
   end
 
+  test "parses a message from a text repsonse containing only a number" do
+    response = %{
+      role: "assistant",
+      content: "42"
+    }
+
+    assert [%Bubble{type: "bot", text: "42"}] = Parser.parse(response)
+  end
+
   test "parses a message from a JSON response" do
     response = make_json_message(%{text: "Hello, world!"})
 
