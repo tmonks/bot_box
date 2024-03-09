@@ -1,4 +1,4 @@
-defmodule ChatBots.ChatApi do
+defmodule ChatBots.OpenAi.Api do
   alias ChatBots.OpenAi.Client
   alias ChatBots.Chats
   alias ChatBots.Chats.{Chat, Message}

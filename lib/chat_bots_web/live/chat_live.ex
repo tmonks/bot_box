@@ -3,6 +3,7 @@ defmodule ChatBotsWeb.ChatLive do
   alias ChatBots.Bots
   alias ChatBots.Chats
   alias ChatBots.Chats.Bubble
+  alias ChatBots.OpenAi.Api
   alias ChatBots.Parser
 
   def mount(_params, _session, socket) do
@@ -50,10 +51,11 @@ defmodule ChatBotsWeb.ChatLive do
 
   def handle_info({:send_message, message_text}, socket) do
     socket =
-      case ChatBots.ChatApi.send_message(socket.assigns.chat, message_text) do
+      case Api.send_message(socket.assigns.chat, message_text) do
         {:ok, chat} ->
-          bubble = chat.messages |> List.last() |> Parser.parse()
-          chat_items = socket.assigns.chat_items ++ [bubble]
+          # parse the latest message into chat items
+          new_chat_items = chat.messages |> List.last() |> Parser.parse()
+          chat_items = socket.assigns.chat_items ++ new_chat_items
           assign(socket, chat: chat, chat_items: chat_items, loading: false)
 
         {:error, error} ->

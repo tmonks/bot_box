@@ -1,10 +1,10 @@
-defmodule ChatBots.ChatApiTest do
+defmodule ChatBots.OpenAi.ApiTest do
   use ChatBots.DataCase
 
   import Mox
   import ChatBots.Fixtures
   alias ChatBots.OpenAi.MockClient
-  alias ChatBots.ChatApi
+  alias ChatBots.OpenAi.Api
   alias ChatBots.Chats
   alias ChatBots.Chats.Message
   import ChatBots.Fixtures
@@ -26,7 +26,7 @@ defmodule ChatBots.ChatApiTest do
       api_success_fixture("42")
     end)
 
-    {:ok, updated_chat} = ChatApi.send_message(chat, message_text)
+    {:ok, updated_chat} = Api.send_message(chat, message_text)
 
     # assert the last message in the updated_chat is "42
     assert %Message{role: "user", content: ^message_text} = updated_chat.messages |> Enum.at(-2)
@@ -41,7 +41,7 @@ defmodule ChatBots.ChatApiTest do
     # Set up the mock and assert the message is sent to the client as a map
     MockClient |> expect(:chat_completion, fn _ -> api_error_fixture() end)
 
-    assert {:error, error} = ChatApi.send_message(chat, message_text)
+    assert {:error, error} = Api.send_message(chat, message_text)
     assert error["message"] == "Invalid request"
   end
 
@@ -53,7 +53,7 @@ defmodule ChatBots.ChatApiTest do
     # Set up the mock and assert the message is sent to the client as a map
     MockClient |> expect(:chat_completion, fn _ -> api_timeout_fixture() end)
 
-    assert {:error, error} = ChatApi.send_message(chat, message_text)
+    assert {:error, error} = Api.send_message(chat, message_text)
     assert error["message"] == "Your request timed out"
   end
 end
