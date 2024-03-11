@@ -6,13 +6,25 @@ defmodule ChatBots.ParserTest do
   alias ChatBots.Chats.Message
   alias ChatBots.Parser
 
-  test "parses a message from a text response" do
+  test "parses a Bubble from a text response" do
     response = %{
       role: "assistant",
       content: "Hello, world!"
     }
 
     assert [%Bubble{type: "bot", text: "Hello, world!"}] = Parser.parse(response)
+  end
+
+  test "splits mult-line content into multiple Bubbles from a text response" do
+    response = %{
+      role: "assistant",
+      content: "Hello, world!\n\nHow are you?"
+    }
+
+    assert [
+             %Bubble{type: "bot", text: "Hello, world!"},
+             %Bubble{type: "bot", text: "How are you?"}
+           ] = Parser.parse(response)
   end
 
   test "parses a message from a text repsonse containing only a number" do
@@ -28,6 +40,15 @@ defmodule ChatBots.ParserTest do
     response = make_json_message(%{text: "Hello, world!"})
 
     assert [%Bubble{type: "bot", text: "Hello, world!"}] = Parser.parse(response)
+  end
+
+  test "splits multi-line content into multiple Bubbles from a JSON response" do
+    response = make_json_message(%{text: "Hello, world!\n\nHow are you?"})
+
+    assert [
+             %Bubble{type: "bot", text: "Hello, world!"},
+             %Bubble{type: "bot", text: "How are you?"}
+           ] = Parser.parse(response)
   end
 
   test "parses an Image from a JSON response" do

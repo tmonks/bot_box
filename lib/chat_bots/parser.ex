@@ -10,7 +10,7 @@ defmodule ChatBots.Parser do
   def parse(%{content: content}) do
     case Jason.decode(content) do
       {:ok, %{"text" => _} = content_map} -> gather_chat_items(content_map)
-      {_, _} -> [parse_chat_item(content)]
+      {_, _} -> parse_chat_item(content)
     end
   end
 
@@ -18,6 +18,7 @@ defmodule ChatBots.Parser do
     content_map
     |> Map.to_list()
     |> Enum.map(&parse_chat_item/1)
+    |> List.flatten()
   end
 
   defp parse_chat_item({"text", response}), do: parse_chat_item(response)
@@ -27,6 +28,8 @@ defmodule ChatBots.Parser do
   end
 
   defp parse_chat_item(response) do
-    %Bubble{type: "bot", text: response}
+    response
+    |> String.split("\n\n")
+    |> Enum.map(&%Bubble{type: "bot", text: &1})
   end
 end
