@@ -169,6 +169,24 @@ defmodule ChatBotsWeb.ChatLiveTest do
     assert has_element?(view, "p.bot-bubble", ~r"\Asecond line\z")
   end
 
+  test "displays an Image response as loading", %{conn: conn} do
+    bot_fixture()
+    {:ok, view, _html} = live(conn, "/")
+
+    message_text = "Make a picture of a cat"
+
+    expect_api_success(message_text, %{
+      text: "here is your picture",
+      image_prompt: "A picture of a cat"
+    })
+
+    view
+    |> form("#chat-form", %{"message" => message_text})
+    |> render_submit()
+
+    assert has_element?(view, ".chat-image", "loading")
+  end
+
   # Set up the mock and assert the message is sent to the client with message_text
   defp expect_api_success(message_sent, message_received \\ "42") do
     MockClient

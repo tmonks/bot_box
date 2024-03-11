@@ -3,6 +3,7 @@ defmodule ChatBotsWeb.ChatLive do
   alias ChatBots.Bots
   alias ChatBots.Chats
   alias ChatBots.Chats.Bubble
+  alias ChatBots.Chats.Image
   alias ChatBots.OpenAi.Api
   alias ChatBots.Parser
 
@@ -26,7 +27,7 @@ defmodule ChatBotsWeb.ChatLive do
   def handle_event("select_bot", %{"bot_id" => bot_id}, socket) do
     bot = Bots.get_bot(bot_id)
     chat = Chats.new_chat(bot.id)
-    chat_items = [%{type: "info", text: "#{bot.name} has entered the chat"}]
+    chat_items = [%Bubble{type: "info", text: "#{bot.name} has entered the chat"}]
 
     socket =
       socket
@@ -85,9 +86,7 @@ defmodule ChatBotsWeb.ChatLive do
     <!-- chat box to display chat_items -->
     <div id="chat-box" class="flex flex-col">
       <%= for chat_item <- @chat_items do %>
-        <%= for line <- String.split(chat_item.text, "\n\n") do %>
-          <.message_bubble type={chat_item.type} text={line} />
-        <% end %>
+        <.render_chat_item item={chat_item} />
       <% end %>
     </div>
     <!-- loading animation -->
@@ -116,15 +115,27 @@ defmodule ChatBotsWeb.ChatLive do
     """
   end
 
-  defp message_bubble(%{type: "error"} = assigns) do
+  defp render_chat_item(%{item: %Bubble{type: "error"}} = assigns) do
     ~H"""
-    <p class={get_message_classes(@type)}>Error: <%= @text %></p>
+    <p class={get_message_classes(@item.type)}>Error: <%= @item.text %></p>
     """
   end
 
-  defp message_bubble(assigns) do
+  defp render_chat_item(%{item: %Bubble{}} = assigns) do
     ~H"""
-    <p class={get_message_classes(@type)}><%= @text %></p>
+    <p class={get_message_classes(@item.type)}><%= @item.text %></p>
+    """
+  end
+
+  defp render_chat_item(%{item: %Image{}} = assigns) do
+    ~H"""
+    <div class="chat-image">
+      <%= if is_nil(@item.file) do %>
+        <span>loading...</span>
+      <% else %>
+        <img src={@item.file} />
+      <% end %>
+    </div>
     """
   end
 
