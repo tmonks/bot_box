@@ -3,7 +3,8 @@ defmodule ChatBotsWeb.ChatLiveTest do
   import Mox
   import ChatBots.Fixtures
   import Phoenix.LiveViewTest
-  alias ChatBots.OpenAi.MockClient
+  alias ChatBots.OpenAi.MockClient, as: OpenAiMock
+  alias ChatBots.StabilityAi.MockClient, as: StabilityAiMock
 
   setup :verify_on_exit!
   setup :login_user
@@ -39,7 +40,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
 
     refute has_element?(view, "#chat-box p", message_text)
 
-    expect_api_success(message_text)
+    expect_chat_api_call(message_text)
 
     view
     |> form("#chat-form", %{"message" => message_text})
@@ -54,7 +55,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
 
     message_text = "I am a user"
 
-    expect_api_success(message_text, "I am a bot")
+    expect_chat_api_call(message_text, "I am a bot")
 
     view
     |> form("#chat-form", %{"message" => message_text})
@@ -76,7 +77,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
 
     message_text = "I am a user"
 
-    expect_api_success(message_text, "I am a bot")
+    expect_chat_api_call(message_text, "I am a bot")
 
     view
     |> form("#chat-form", %{"message" => message_text})
@@ -100,7 +101,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
 
     message_text = "I am a user"
 
-    expect_api_success(message_text, "I am a bot")
+    expect_chat_api_call(message_text, "I am a bot")
 
     view
     |> form("#chat-form", %{"message" => message_text})
@@ -131,7 +132,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
 
     assert has_element?(view, "#bot-select option[selected]", bot2.name)
 
-    expect_api_success("Hello")
+    expect_chat_api_call("Hello")
 
     view
     |> form("#chat-form", %{"message" => "Hello"})
@@ -145,7 +146,8 @@ defmodule ChatBotsWeb.ChatLiveTest do
 
     {:ok, view, _html} = live(conn, "/")
 
-    expect_api_failure()
+    OpenAiMock
+    |> expect(:chat_completion, fn _ -> api_error_fixture() end)
 
     view
     |> form("#chat-form", %{"message" => "Hello"})
@@ -159,7 +161,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
     {:ok, view, _html} = live(conn, "/")
 
     message_text = "Hello"
-    expect_api_success(message_text, "first line\n\nsecond line")
+    expect_chat_api_call(message_text, "first line\n\nsecond line")
 
     view
     |> form("#chat-form", %{"message" => message_text})
@@ -175,10 +177,12 @@ defmodule ChatBotsWeb.ChatLiveTest do
 
     message_text = "Make a picture of a cat"
 
-    expect_api_success(message_text, %{
+    expect_chat_api_call(message_text, %{
       text: "here is your picture",
       image_prompt: "A picture of a cat"
     })
+
+    expect_image_api_call("A picture of a cat")
 
     view
     |> form("#chat-form", %{"message" => message_text})
@@ -187,9 +191,52 @@ defmodule ChatBotsWeb.ChatLiveTest do
     assert has_element?(view, ".chat-image", "loading")
   end
 
+  test "displays an Image after the new Bubble", %{conn: conn} do
+    bot_fixture()
+    {:ok, view, _html} = live(conn, "/")
+
+    message_text = "Make a picture of a cat"
+
+    expect_chat_api_call(message_text, %{
+      text: "here is your picture",
+      image_prompt: "A picture of a cat"
+    })
+
+    expect_image_api_call("A picture of a cat")
+
+    view
+    |> form("#chat-form", %{"message" => message_text})
+    |> render_submit()
+
+    assert render(view) =~ ~r"here is your picture.*chat-image"
+    :timer.sleep(100)
+  end
+
+  test "sends image prompts to the StabilityAI API", %{conn: conn} do
+    bot_fixture()
+    {:ok, view, _html} = live(conn, "/")
+
+    message_text = "Make a picture of a cat"
+
+    chat_response = %{
+      text: "here is your picture",
+      image_prompt: "A picture of a cat"
+    }
+
+    expect_chat_api_call(message_text, chat_response)
+    expect_image_api_call("A picture of a cat")
+
+    view
+    |> form("#chat-form", %{"message" => message_text})
+    |> render_submit()
+
+    # TODO set up expectation blocking instead of sleeping
+    :timer.sleep(100)
+  end
+
   # Set up the mock and assert the message is sent to the client with message_text
-  defp expect_api_success(message_sent, message_received \\ "42") do
-    MockClient
+  defp expect_chat_api_call(message_sent, message_received \\ "42") do
+    OpenAiMock
     |> expect(:chat_completion, fn [model: _, messages: messages] ->
       assert [_, user_message] = messages
       assert user_message == %{role: "user", content: message_sent}
@@ -197,9 +244,13 @@ defmodule ChatBotsWeb.ChatLiveTest do
     end)
   end
 
-  # Set up the mock to return an error response
-  defp expect_api_failure() do
-    MockClient
-    |> expect(:chat_completion, fn _ -> api_error_fixture() end)
+  defp expect_image_api_call(image_prompt) do
+    StabilityAiMock
+    |> expect(:post, fn _url, options ->
+      %{text_prompts: text_prompts} = Keyword.get(options, :json)
+      assert %{text: image_prompt, weight: 1} in text_prompts
+
+      {:ok, %Req.Response{body: %{"artifacts" => [%{"base64" => "Zm9vYmFy", "seed" => 12345}]}}}
+    end)
   end
 end

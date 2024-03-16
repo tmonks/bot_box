@@ -14,7 +14,7 @@ defmodule ChatBots.StabilityAi.Api do
   def generate_image(prompt, params \\ %{}) do
     model = "stable-diffusion-xl-1024-v1-0"
     url = "https://api.stability.ai/v1/generation/#{model}/text-to-image"
-    download_path = Application.get_env(:chat_bots, :download_path) |> IO.inspect()
+    download_path = Application.get_env(:chat_bots, :download_path)
 
     headers =
       [

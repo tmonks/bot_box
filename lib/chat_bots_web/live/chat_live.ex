@@ -4,7 +4,8 @@ defmodule ChatBotsWeb.ChatLive do
   alias ChatBots.Chats
   alias ChatBots.Chats.Bubble
   alias ChatBots.Chats.Image
-  alias ChatBots.OpenAi.Api
+  alias ChatBots.OpenAi.Api, as: ChatApi
+  alias ChatBots.StabilityAi.Api, as: ImageApi
   alias ChatBots.Parser
 
   def mount(_params, _session, socket) do
@@ -40,7 +41,7 @@ defmodule ChatBotsWeb.ChatLive do
 
   def handle_event("submit_message", %{"message" => message_text}, socket) do
     # send a message to self to trigger the API call in the background
-    send(self(), {:send_message, message_text})
+    send(self(), {:request_chat, message_text})
 
     # add user message to chat_items
     user_message = %Bubble{type: "user", text: message_text}
@@ -50,13 +51,14 @@ defmodule ChatBotsWeb.ChatLive do
     {:noreply, socket}
   end
 
-  def handle_info({:send_message, message_text}, socket) do
+  def handle_info({:request_chat, message_text}, socket) do
     socket =
-      case Api.send_message(socket.assigns.chat, message_text) do
+      case ChatApi.send_message(socket.assigns.chat, message_text) do
         {:ok, chat} ->
           # parse the latest message into chat items
-          new_chat_items = chat.messages |> List.last() |> Parser.parse()
+          new_chat_items = chat.messages |> List.last() |> Parser.parse() |> sort_chat_items()
           chat_items = socket.assigns.chat_items ++ new_chat_items
+          maybe_send_image_request(chat_items)
           assign(socket, chat: chat, chat_items: chat_items, loading: false)
 
         {:error, error} ->
@@ -67,6 +69,37 @@ defmodule ChatBotsWeb.ChatLive do
       end
 
     {:noreply, socket}
+  end
+
+  def handle_info({:request_image, image_prompt}, socket) do
+    case ImageApi.generate_image(image_prompt) do
+      {:ok, image} ->
+        _chat_items = socket.assigns.chat_items ++ [image]
+
+      {:error, _error} ->
+        _chat_items =
+          socket.assigns.chat_items ++ [%Bubble{type: "error", text: "Error generating image"}]
+    end
+
+    {:noreply, socket}
+  end
+
+  # sort images last
+  defp sort_chat_items(chat_items) do
+    Enum.sort_by(chat_items, fn
+      %Image{} -> 1
+      _ -> 0
+    end)
+  end
+
+  defp maybe_send_image_request(chat_items) do
+    # filter the list to only include images
+    chat_items
+    |> Enum.filter(&is_struct(&1, Image))
+    |> case do
+      [] -> :ok
+      [image] -> send(self(), {:request_image, image.prompt})
+    end
   end
 
   def render(assigns) do

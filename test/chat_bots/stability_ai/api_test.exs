@@ -18,6 +18,9 @@ defmodule ChatBots.StabilityAi.ApiTest do
         assert {"Content-Type", "application/json"} in options[:headers]
         assert {"Accept", "application/json"} in options[:headers]
 
+        %{text_prompts: text_prompts} = Keyword.get(options, :json)
+        assert %{text: "a cute fluffy cat", weight: 1} in text_prompts
+
         {:ok,
          %Req.Response{
            body: %{
