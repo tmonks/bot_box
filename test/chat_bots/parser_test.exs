@@ -2,7 +2,7 @@ defmodule ChatBots.ParserTest do
   use ChatBots.DataCase, async: true
 
   alias ChatBots.Chats.Bubble
-  alias ChatBots.Chats.Image
+  alias ChatBots.Chats.ImageRequest
   alias ChatBots.Chats.Message
   alias ChatBots.Parser
 
@@ -51,14 +51,15 @@ defmodule ChatBots.ParserTest do
            ] = Parser.parse(response)
   end
 
-  test "parses an Image from a JSON response" do
+  test "parses an ImageRequest from a JSON response" do
     response =
       make_json_message(%{
         text: "Hello, world!",
         image_prompt: "An image of a duck wearing a hat"
       })
 
-    assert [%Image{prompt: "An image of a duck wearing a hat"}, _bubble] = Parser.parse(response)
+    assert [%ImageRequest{prompt: "An image of a duck wearing a hat"}, _bubble] =
+             Parser.parse(response)
   end
 
   defp make_json_message(response_json) do

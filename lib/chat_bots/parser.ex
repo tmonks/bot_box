@@ -3,7 +3,7 @@ defmodule ChatBots.Parser do
   Parses messages from the chat API into chat items to be displayed in the chat window.
   """
   alias ChatBots.Chats.Bubble
-  alias ChatBots.Chats.Image
+  alias ChatBots.Chats.ImageRequest
 
   @doc """
   """
@@ -24,7 +24,7 @@ defmodule ChatBots.Parser do
   defp parse_chat_item({"text", response}), do: parse_chat_item(response)
 
   defp parse_chat_item({"image_prompt", prompt}) do
-    %Image{prompt: prompt}
+    %ImageRequest{prompt: prompt}
   end
 
   defp parse_chat_item(response) do
