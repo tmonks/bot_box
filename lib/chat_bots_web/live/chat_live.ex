@@ -4,6 +4,7 @@ defmodule ChatBotsWeb.ChatLive do
   alias ChatBots.Chats
   alias ChatBots.Chats.Bubble
   alias ChatBots.Chats.Image
+  alias ChatBots.Chats.ImageRequest
   alias ChatBots.OpenAi.Api, as: ChatApi
   alias ChatBots.StabilityAi.Api, as: ImageApi
   alias ChatBots.Parser
@@ -52,36 +53,39 @@ defmodule ChatBotsWeb.ChatLive do
   end
 
   def handle_info({:request_chat, message_text}, socket) do
-    socket =
-      case ChatApi.send_message(socket.assigns.chat, message_text) do
-        {:ok, chat} ->
-          # parse the latest message into chat items
-          new_chat_items = chat.messages |> List.last() |> Parser.parse() |> sort_chat_items()
-          chat_items = socket.assigns.chat_items ++ new_chat_items
-          maybe_send_image_request(chat_items)
-          assign(socket, chat: chat, chat_items: chat_items, loading: false)
+    case ChatApi.send_message(socket.assigns.chat, message_text) do
+      {:ok, chat} ->
+        # parse the latest message into chat items
+        new_chat_items = chat.messages |> List.last() |> Parser.parse() |> sort_chat_items()
+        chat_items = socket.assigns.chat_items ++ new_chat_items
 
-        {:error, error} ->
-          chat_items =
-            socket.assigns.chat_items ++ [%Bubble{type: "error", text: error["message"]}]
+        {:noreply,
+         socket
+         |> assign(chat: chat, chat_items: chat_items, loading: false)
+         |> maybe_send_image_request()}
 
-          assign(socket, chat_items: chat_items, loading: false)
-      end
+      {:error, error} ->
+        chat_items =
+          socket.assigns.chat_items ++ [%Bubble{type: "error", text: error["message"]}]
 
-    {:noreply, socket}
+        {:noreply, assign(socket, chat_items: chat_items, loading: false)}
+    end
   end
 
   def handle_info({:request_image, image_prompt}, socket) do
+    # TODO: refactor this to just return the new chat_item
     case ImageApi.generate_image(image_prompt) do
-      {:ok, image} ->
-        _chat_items = socket.assigns.chat_items ++ [image]
+      {:ok, file} ->
+        chat_items = socket.assigns.chat_items ++ [%Image{file: file}]
+
+        {:noreply, assign(socket, chat_items: chat_items, loading: false)}
 
       {:error, _error} ->
-        _chat_items =
+        chat_items =
           socket.assigns.chat_items ++ [%Bubble{type: "error", text: "Error generating image"}]
-    end
 
-    {:noreply, socket}
+        {:noreply, assign(socket, chat_items: chat_items, loading: false)}
+    end
   end
 
   # sort images last
@@ -92,13 +96,17 @@ defmodule ChatBotsWeb.ChatLive do
     end)
   end
 
-  defp maybe_send_image_request(chat_items) do
-    # filter the list to only include images
-    chat_items
-    |> Enum.filter(&is_struct(&1, Image))
-    |> case do
-      [] -> :ok
-      [image] -> send(self(), {:request_image, image.prompt})
+  defp maybe_send_image_request(socket) do
+    {image_requests, chat_items} =
+      Enum.split_with(socket.assigns.chat_items, &is_struct(&1, ImageRequest))
+
+    case image_requests do
+      [] ->
+        socket
+
+      [image_request] ->
+        send(self(), {:request_image, image_request.prompt})
+        assign(socket, chat_items: chat_items, loading: true)
     end
   end
 

@@ -1,7 +1,9 @@
 defmodule ChatBots.StabilityAi.ApiTest do
   use ChatBotsWeb.ConnCase, async: true
 
+  import ChatBots.Fixtures.StabilityAiFixtures
   import Mox
+
   alias ChatBots.StabilityAi.Api
   alias ChatBots.StabilityAi.MockClient
 
@@ -34,10 +36,9 @@ defmodule ChatBots.StabilityAi.ApiTest do
          }}
       end)
 
-      date = Date.utc_today() |> Date.to_iso8601() |> String.replace("-", "")
-      expected_filename = "img-#{date}-12345.png"
+      expected_file_name = expected_file_name(12345)
 
-      assert {:ok, ^expected_filename} =
+      assert {:ok, ^expected_file_name} =
                Api.generate_image("a cute fluffy cat", %{style_preset: "awesome"})
     end
   end

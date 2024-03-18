@@ -1,3 +1,3 @@
 defmodule ChatBots.Chats.Image do
-  defstruct [:prompt, :file]
+  defstruct [:file]
 end

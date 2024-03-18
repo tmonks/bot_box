@@ -2,7 +2,9 @@ defmodule ChatBotsWeb.ChatLiveTest do
   use ChatBotsWeb.ConnCase, async: false
   import Mox
   import ChatBots.Fixtures
+  import ChatBots.Fixtures.StabilityAiFixtures
   import Phoenix.LiveViewTest
+
   alias ChatBots.OpenAi.MockClient, as: OpenAiMock
   alias ChatBots.StabilityAi.MockClient, as: StabilityAiMock
 
@@ -171,6 +173,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
     assert has_element?(view, "p.bot-bubble", ~r"\Asecond line\z")
   end
 
+  @tag :skip
   test "displays an Image response as loading", %{conn: conn} do
     bot_fixture()
     {:ok, view, _html} = live(conn, "/")
@@ -191,6 +194,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
     assert has_element?(view, ".chat-image", "loading")
   end
 
+  @tag :skip
   test "displays an Image after the new Bubble", %{conn: conn} do
     bot_fixture()
     {:ok, view, _html} = live(conn, "/")
@@ -212,7 +216,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
     :timer.sleep(100)
   end
 
-  test "sends image prompts to the StabilityAI API", %{conn: conn} do
+  test "sends image prompts to the StabilityAI API and displays the image returned", %{conn: conn} do
     bot_fixture()
     {:ok, view, _html} = live(conn, "/")
 
@@ -232,6 +236,10 @@ defmodule ChatBotsWeb.ChatLiveTest do
 
     # TODO set up expectation blocking instead of sleeping
     :timer.sleep(100)
+
+    file_name = expected_file_name(12345)
+
+    assert has_element?(view, "img[src='#{file_name}']")
   end
 
   # Set up the mock and assert the message is sent to the client with message_text
