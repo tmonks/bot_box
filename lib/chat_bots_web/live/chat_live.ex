@@ -73,19 +73,9 @@ defmodule ChatBotsWeb.ChatLive do
   end
 
   def handle_info({:request_image, image_prompt}, socket) do
-    # TODO: refactor this to just return the new chat_item
-    case ImageApi.generate_image(image_prompt) do
-      {:ok, file} ->
-        chat_items = socket.assigns.chat_items ++ [%Image{file: file}]
-
-        {:noreply, assign(socket, chat_items: chat_items, loading: false)}
-
-      {:error, _error} ->
-        chat_items =
-          socket.assigns.chat_items ++ [%Bubble{type: "error", text: "Error generating image"}]
-
-        {:noreply, assign(socket, chat_items: chat_items, loading: false)}
-    end
+    {:ok, file} = ImageApi.generate_image(image_prompt)
+    chat_items = socket.assigns.chat_items ++ [%Image{file: file}]
+    {:noreply, assign(socket, chat_items: chat_items, loading: false)}
   end
 
   # sort images last
