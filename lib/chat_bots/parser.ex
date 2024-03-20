@@ -9,17 +9,19 @@ defmodule ChatBots.Parser do
   """
   def parse(%{content: content}) do
     case Jason.decode(content) do
-      {:ok, %{"text" => _} = content_map} -> gather_chat_items(content_map)
+      {:ok, content_map} -> gather_chat_items(content_map)
       {_, _} -> parse_chat_item(content)
     end
   end
 
-  defp gather_chat_items(content_map) do
+  defp gather_chat_items(content_map) when is_map(content_map) do
     content_map
     |> Map.to_list()
     |> Enum.map(&parse_chat_item/1)
     |> List.flatten()
   end
+
+  defp gather_chat_items(content_map), do: parse_chat_item(content_map)
 
   defp parse_chat_item({"text", response}), do: parse_chat_item(response)
 
@@ -27,9 +29,13 @@ defmodule ChatBots.Parser do
     %ImageRequest{prompt: prompt}
   end
 
-  defp parse_chat_item(response) do
+  defp parse_chat_item(response) when is_binary(response) do
     response
     |> String.split("\n\n")
     |> Enum.map(&%Bubble{type: "bot", text: &1})
+  end
+
+  defp parse_chat_item(response) do
+    [%Bubble{type: "bot", text: "#{response}"}]
   end
 end

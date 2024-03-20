@@ -27,7 +27,7 @@ defmodule ChatBots.ParserTest do
            ] = Parser.parse(response)
   end
 
-  test "parses a message from a text repsonse containing only a number" do
+  test "parses a message from a text response containing only a number" do
     response = %{
       role: "assistant",
       content: "42"
@@ -52,6 +52,12 @@ defmodule ChatBots.ParserTest do
   end
 
   test "parses an ImageRequest from a JSON response" do
+    response = make_json_message(%{image_prompt: "An image of a duck wearing a hat"})
+
+    assert [%ImageRequest{prompt: "An image of a duck wearing a hat"}] = Parser.parse(response)
+  end
+
+  test "parses an ImageRequest and a Bubble from a single JSON response" do
     response =
       make_json_message(%{
         text: "Hello, world!",
