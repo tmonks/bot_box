@@ -73,7 +73,7 @@ if config_env() == :prod do
   config :chat_bots, :auth, password: System.fetch_env!("USER_PASSWORD")
 
   # path for downloading images
-  config :chat_bots, download_path: Application.app_dir(:quiz) <> "/priv/static/images/quiz"
+  config :chat_bots, download_path: Application.app_dir(:chat_bots) <> "/priv/static/images"
 
   # ## SSL Support
   #

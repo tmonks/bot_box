@@ -53,7 +53,8 @@ config :chat_bots, ChatBots.Repo,
 config :chat_bots, ChatBotsWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      # ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/.*(js|css)$",
       ~r"lib/chat_bots_web/(controllers|live|components)/.*(ex|heex)$"
     ]
   ]
@@ -72,4 +73,4 @@ config :phoenix, :stacktrace_depth, 20
 config :phoenix, :plug_init_mode, :runtime
 
 # path for downloading images
-config :chat_bots, download_path: "priv/static/images/quiz"
+config :chat_bots, download_path: "priv/static/images"
