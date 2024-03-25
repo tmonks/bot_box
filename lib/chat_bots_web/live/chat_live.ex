@@ -12,14 +12,15 @@ defmodule ChatBotsWeb.ChatLive do
   def mount(_params, _session, socket) do
     bots = Bots.list_bots()
     bot = hd(bots)
-    chat = Chats.new_chat(bot.id)
+    messages = Chats.new_chat(bot.id)
+
     chat_items = [%Bubble{type: "info", text: "#{bot.name} has entered the chat"}]
 
     socket =
       socket
       |> assign(:bots, bots)
       |> assign(:bot, bot)
-      |> assign(:chat, chat)
+      |> assign(:messages, messages)
       |> assign(:chat_items, chat_items)
       |> assign(:loading, false)
 
@@ -28,13 +29,13 @@ defmodule ChatBotsWeb.ChatLive do
 
   def handle_event("select_bot", %{"bot_id" => bot_id}, socket) do
     bot = Bots.get_bot(bot_id)
-    chat = Chats.new_chat(bot.id)
+    messages = Chats.new_chat(bot.id)
     chat_items = [%Bubble{type: "info", text: "#{bot.name} has entered the chat"}]
 
     socket =
       socket
       |> assign(:bot, bot)
-      |> assign(:chat, chat)
+      |> assign(:messages, messages)
       |> assign(:chat_items, chat_items)
 
     {:noreply, socket}
@@ -53,15 +54,15 @@ defmodule ChatBotsWeb.ChatLive do
   end
 
   def handle_info({:request_chat, message_text}, socket) do
-    case ChatApi.send_message(socket.assigns.chat, message_text) do
-      {:ok, chat} ->
+    case ChatApi.send_message(socket.assigns.messages, message_text) do
+      {:ok, messages} ->
         # parse the latest message into chat items
-        new_chat_items = chat.messages |> List.last() |> Parser.parse() |> sort_chat_items()
+        new_chat_items = messages |> List.last() |> Parser.parse() |> sort_chat_items()
         chat_items = socket.assigns.chat_items ++ new_chat_items
 
         {:noreply,
          socket
-         |> assign(chat: chat, chat_items: chat_items, loading: false)
+         |> assign(messages: messages, chat_items: chat_items, loading: false)
          |> maybe_send_image_request()}
 
       {:error, error} ->
@@ -164,7 +165,7 @@ defmodule ChatBotsWeb.ChatLive do
       <%= if is_nil(@item.file) do %>
         <span>loading...</span>
       <% else %>
-        <img src={@item.file} />
+        <img style="width: 512px" src={"/images/" <> @item.file} />
       <% end %>
     </div>
     """

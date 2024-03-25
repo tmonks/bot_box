@@ -1,5 +1,5 @@
 defmodule ChatBots.Chats do
-  alias ChatBots.Chats.{Chat, Message}
+  alias ChatBots.Chats.Message
   alias ChatBots.Bots
 
   @doc """
@@ -8,14 +8,13 @@ defmodule ChatBots.Chats do
   def new_chat(bot_id) do
     bot = Bots.get_bot(bot_id)
     system_prompt = %Message{role: "system", content: bot.directive}
-    %Chat{bot_id: bot_id, messages: [system_prompt]}
+    [system_prompt]
   end
 
   @doc """
   Adds a message to the chat.
   """
-  # TODO: enforce that it only accepts a %Message struct
-  def add_message(chat, message) do
-    %Chat{chat | messages: chat.messages ++ [message]}
+  def add_message(messages, message) do
+    messages ++ [message]
   end
 end

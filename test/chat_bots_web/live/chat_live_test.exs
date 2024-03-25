@@ -239,7 +239,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
 
     file_name = expected_file_name(12345)
 
-    assert has_element?(view, "img[src='#{file_name}']")
+    assert has_element?(view, "img[src='/images/#{file_name}']")
   end
 
   # Set up the mock and assert the message is sent to the client with message_text
