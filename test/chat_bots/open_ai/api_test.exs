@@ -14,8 +14,12 @@ defmodule ChatBots.OpenAi.ApiTest do
 
   test "send_message/2 adds a response to the chat" do
     bot = bot_fixture()
-    messages = Chats.new_chat(bot.id)
+
     message_text = "What is the meaning of life?"
+
+    messages =
+      Chats.new_chat(bot.id)
+      |> Chats.add_message(%Message{role: "user", content: message_text})
 
     # Set up the mock and assert the message is sent to the client as a map
     MockClient
@@ -26,7 +30,7 @@ defmodule ChatBots.OpenAi.ApiTest do
       api_success_fixture("42")
     end)
 
-    {:ok, updated_messages} = Api.send_message(messages, message_text)
+    {:ok, updated_messages} = Api.send_message(messages)
 
     # assert the last message in the updated_chat is "42
     assert %Message{role: "user", content: ^message_text} = updated_messages |> Enum.at(-2)
@@ -35,25 +39,31 @@ defmodule ChatBots.OpenAi.ApiTest do
 
   test "send_message/2 returns an error tuple if the client returns an error" do
     bot = bot_fixture()
-    chat = Chats.new_chat(bot.id)
+
     message_text = "What is the meaning of life?"
+
+    messages =
+      Chats.new_chat(bot.id)
+      |> Chats.add_message(%Message{role: "user", content: message_text})
 
     # Set up the mock and assert the message is sent to the client as a map
     MockClient |> expect(:chat_completion, fn _ -> api_error_fixture() end)
 
-    assert {:error, error} = Api.send_message(chat, message_text)
+    assert {:error, error} = Api.send_message(messages)
     assert error["message"] == "Invalid request"
   end
 
   test "send_message/2 can handle a :timeout error" do
     bot = bot_fixture()
-    chat = Chats.new_chat(bot.id)
     message_text = "What is the meaning of life?"
+
+    messages =
+      Chats.new_chat(bot.id) |> Chats.add_message(%Message{role: "user", content: message_text})
 
     # Set up the mock and assert the message is sent to the client as a map
     MockClient |> expect(:chat_completion, fn _ -> api_timeout_fixture() end)
 
-    assert {:error, error} = Api.send_message(chat, message_text)
+    assert {:error, error} = Api.send_message(messages)
     assert error["message"] == "Your request timed out"
   end
 end
