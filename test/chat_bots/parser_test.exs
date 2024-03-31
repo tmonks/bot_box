@@ -6,66 +6,109 @@ defmodule ChatBots.ParserTest do
   alias ChatBots.Chats.Message
   alias ChatBots.Parser
 
-  test "parses a Bubble from a text response" do
-    response = %{
-      role: "assistant",
-      content: "Hello, world!"
-    }
+  describe "parse/1" do
+    test "parses a Bubble from a text response" do
+      response = %{
+        role: "assistant",
+        content: "Hello, world!"
+      }
 
-    assert [%Bubble{type: "bot", text: "Hello, world!"}] = Parser.parse(response)
+      assert [%Bubble{type: "bot", text: "Hello, world!"}] = Parser.parse(response)
+    end
+
+    test "can parse a Bubble from a user message" do
+      response = %{
+        role: "user",
+        content: "Hello, world!"
+      }
+
+      assert [%Bubble{type: "user", text: "Hello, world!"}] = Parser.parse(response)
+    end
+
+    test "can parse a Bubble from an info message" do
+      response = %{
+        role: "info",
+        content: "Bot has entered the chat"
+      }
+
+      assert [%Bubble{type: "info", text: "Bot has entered the chat"}] = Parser.parse(response)
+    end
+
+    test "splits mult-line content into multiple Bubbles from a text response" do
+      response = %{
+        role: "assistant",
+        content: "Hello, world!\n\nHow are you?"
+      }
+
+      assert [
+               %Bubble{type: "bot", text: "Hello, world!"},
+               %Bubble{type: "bot", text: "How are you?"}
+             ] = Parser.parse(response)
+    end
+
+    test "parses a message from a text response containing only a number" do
+      response = %{
+        role: "assistant",
+        content: "42"
+      }
+
+      assert [%Bubble{type: "bot", text: "42"}] = Parser.parse(response)
+    end
+
+    test "parses a message from a JSON response" do
+      response = make_json_message(%{text: "Hello, world!"})
+
+      assert [%Bubble{type: "bot", text: "Hello, world!"}] = Parser.parse(response)
+    end
+
+    test "splits multi-line content into multiple Bubbles from a JSON response" do
+      response = make_json_message(%{text: "Hello, world!\n\nHow are you?"})
+
+      assert [
+               %Bubble{type: "bot", text: "Hello, world!"},
+               %Bubble{type: "bot", text: "How are you?"}
+             ] = Parser.parse(response)
+    end
+
+    test "parses an ImageRequest from a JSON response" do
+      response = make_json_message(%{image_prompt: "An image of a duck wearing a hat"})
+
+      assert [%ImageRequest{prompt: "An image of a duck wearing a hat"}] = Parser.parse(response)
+    end
+
+    test "parses an ImageRequest and a Bubble from a single JSON response" do
+      response =
+        make_json_message(%{
+          text: "Hello, world!",
+          image_prompt: "An image of a duck wearing a hat"
+        })
+
+      assert [%ImageRequest{prompt: "An image of a duck wearing a hat"}, _bubble] =
+               Parser.parse(response)
+    end
   end
 
-  test "splits mult-line content into multiple Bubbles from a text response" do
-    response = %{
-      role: "assistant",
-      content: "Hello, world!\n\nHow are you?"
-    }
+  describe "parse_image_prompt/1" do
+    test "parses an image response from a JSON response" do
+      response = make_json_message(%{image_prompt: "An image of a cat"})
 
-    assert [
-             %Bubble{type: "bot", text: "Hello, world!"},
-             %Bubble{type: "bot", text: "How are you?"}
-           ] = Parser.parse(response)
-  end
+      assert "An image of a cat" = Parser.parse_image_prompt(response)
+    end
 
-  test "parses a message from a text response containing only a number" do
-    response = %{
-      role: "assistant",
-      content: "42"
-    }
+    test "returns nil if the image_prompt key is not present" do
+      response = make_json_message(%{text: "Hello, world!"})
 
-    assert [%Bubble{type: "bot", text: "42"}] = Parser.parse(response)
-  end
+      assert Parser.parse_image_prompt(response) |> is_nil()
+    end
 
-  test "parses a message from a JSON response" do
-    response = make_json_message(%{text: "Hello, world!"})
+    test "returns nil if the message is not a JSON response" do
+      response = %{
+        role: "assistant",
+        content: "Hello, world!"
+      }
 
-    assert [%Bubble{type: "bot", text: "Hello, world!"}] = Parser.parse(response)
-  end
-
-  test "splits multi-line content into multiple Bubbles from a JSON response" do
-    response = make_json_message(%{text: "Hello, world!\n\nHow are you?"})
-
-    assert [
-             %Bubble{type: "bot", text: "Hello, world!"},
-             %Bubble{type: "bot", text: "How are you?"}
-           ] = Parser.parse(response)
-  end
-
-  test "parses an ImageRequest from a JSON response" do
-    response = make_json_message(%{image_prompt: "An image of a duck wearing a hat"})
-
-    assert [%ImageRequest{prompt: "An image of a duck wearing a hat"}] = Parser.parse(response)
-  end
-
-  test "parses an ImageRequest and a Bubble from a single JSON response" do
-    response =
-      make_json_message(%{
-        text: "Hello, world!",
-        image_prompt: "An image of a duck wearing a hat"
-      })
-
-    assert [%ImageRequest{prompt: "An image of a duck wearing a hat"}, _bubble] =
-             Parser.parse(response)
+      assert Parser.parse_image_prompt(response) |> is_nil()
+    end
   end
 
   defp make_json_message(response_json) do
