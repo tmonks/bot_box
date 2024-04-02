@@ -3,12 +3,17 @@ defmodule ChatBots.Parser do
   Parses messages from the chat API into chat items to be displayed in the chat window.
   """
   alias ChatBots.Chats.Bubble
-  alias ChatBots.Chats.ImageRequest
+  alias ChatBots.Chats.Image
 
   @doc """
   Parses a chat response into a list of chat items
   """
-  def parse(%{content: content, role: "assistant"}) do
+  def parse(%{role: "image", content: content}) do
+    %{"file" => file, "prompt" => prompt} = Jason.decode!(content)
+    [%Image{file: file, prompt: prompt}]
+  end
+
+  def parse(%{role: "assistant", content: content}) do
     maybe_decode_json(content)
     |> gather_chat_items()
   end
@@ -35,19 +40,17 @@ defmodule ChatBots.Parser do
 
   defp parse_chat_item({"text", response}), do: parse_chat_item(response)
 
-  defp parse_chat_item({"image_prompt", prompt}) do
-    %ImageRequest{prompt: prompt}
-  end
-
   defp parse_chat_item(response) when is_binary(response) do
     response
     |> String.split("\n\n")
     |> Enum.map(&%Bubble{type: "bot", text: &1})
   end
 
-  defp parse_chat_item(response) do
+  defp parse_chat_item(response) when is_number(response) do
     [%Bubble{type: "bot", text: "#{response}"}]
   end
+
+  defp parse_chat_item(_), do: []
 
   @doc """
   Parses an image_prompt if present in the JSON response

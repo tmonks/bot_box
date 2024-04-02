@@ -2,7 +2,7 @@ defmodule ChatBots.ParserTest do
   use ChatBots.DataCase, async: true
 
   alias ChatBots.Chats.Bubble
-  alias ChatBots.Chats.ImageRequest
+  alias ChatBots.Chats.Image
   alias ChatBots.Chats.Message
   alias ChatBots.Parser
 
@@ -70,20 +70,14 @@ defmodule ChatBots.ParserTest do
              ] = Parser.parse(response)
     end
 
-    test "parses an ImageRequest from a JSON response" do
-      response = make_json_message(%{image_prompt: "An image of a duck wearing a hat"})
-
-      assert [%ImageRequest{prompt: "An image of a duck wearing a hat"}] = Parser.parse(response)
-    end
-
-    test "parses an ImageRequest and a Bubble from a single JSON response" do
+    test "can parse an image do from a JSON response" do
       response =
         make_json_message(%{
-          text: "Hello, world!",
-          image_prompt: "An image of a duck wearing a hat"
+          role: "image",
+          content: %{file: "/path/to/image.jpg", prompt: "An image of a cat"}
         })
 
-      assert [%ImageRequest{prompt: "An image of a duck wearing a hat"}, _bubble] =
+      assert [%Image{file: "/path/to/image.jpg", prompt: "An image of a cat"}] =
                Parser.parse(response)
     end
   end
@@ -109,6 +103,13 @@ defmodule ChatBots.ParserTest do
 
       assert Parser.parse_image_prompt(response) |> is_nil()
     end
+  end
+
+  defp make_json_message(%{role: role, content: content}) do
+    %Message{
+      role: role,
+      content: Jason.encode!(content)
+    }
   end
 
   defp make_json_message(response_json) do
