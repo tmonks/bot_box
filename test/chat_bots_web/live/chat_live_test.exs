@@ -96,6 +96,24 @@ defmodule ChatBotsWeb.ChatLiveTest do
     assert has_element?(view, "#chat-box p", ~r/#{bot.name} has entered the chat/)
   end
 
+  test "does not send 'info' messages to the API", %{conn: conn} do
+    bot_fixture()
+    {:ok, view, _html} = live(conn, "/")
+
+    OpenAiMock
+    |> expect(:chat_completion, fn [model: _, messages: messages] ->
+      assert not Enum.any?(messages, &(&1.role == "info"))
+      assert %{role: "user", content: "Hello bot"} in messages
+      api_success_fixture("Hello human")
+    end)
+
+    view
+    |> form("#chat-form", %{"message" => "Hello bot"})
+    |> render_submit()
+
+    assert has_element?(view, "#chat-box p", ~r/Test Bot has entered the chat/)
+  end
+
   test "selecting a different bot clears the chat", %{conn: conn} do
     _bot1 = bot_fixture(name: "Bot 1", directive: "some directive 1")
     bot2 = bot_fixture(name: "Bot 2", directive: "some directive 2")

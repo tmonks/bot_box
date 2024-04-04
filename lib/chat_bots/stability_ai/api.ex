@@ -40,7 +40,7 @@ defmodule ChatBots.StabilityAi.Api do
       |> Map.merge(params)
 
     {:ok, %Req.Response{body: resp_body}} =
-      Client.post(url, json: body, headers: headers, receive_timeout: 120_000) |> IO.inspect()
+      Client.post(url, json: body, headers: headers, receive_timeout: 120_000)
 
     %{"artifacts" => [%{"base64" => base64, "seed" => seed}]} = resp_body
     image_data = Base.decode64!(base64)

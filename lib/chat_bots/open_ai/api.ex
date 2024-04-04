@@ -1,6 +1,5 @@
 defmodule ChatBots.OpenAi.Api do
   alias ChatBots.OpenAi.Client
-  alias ChatBots.Chats
   alias ChatBots.Chats.Message
 
   @model "gpt-3.5-turbo"

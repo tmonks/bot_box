@@ -4,7 +4,7 @@ defmodule ChatBotsWeb.ChatLive do
   alias ChatBots.Chats
   alias ChatBots.Chats.Bubble
   alias ChatBots.Chats.Image
-  alias ChatBots.Chats.ImageRequest
+  alias ChatBots.Chats.Message
   alias ChatBots.OpenAi.Api, as: ChatApi
   alias ChatBots.StabilityAi.Api, as: ImageApi
   alias ChatBots.Parser
@@ -12,16 +12,11 @@ defmodule ChatBotsWeb.ChatLive do
   def mount(_params, _session, socket) do
     bots = Bots.list_bots()
     bot = hd(bots)
-    messages = Chats.new_chat(bot.id)
-
-    chat_items = [%Bubble{type: "info", text: "#{bot.name} has entered the chat"}]
 
     socket =
       socket
       |> assign(:bots, bots)
-      |> assign(:bot, bot)
-      |> assign(:messages, messages)
-      |> assign(:chat_items, chat_items)
+      |> assign_messages_and_bot(bot)
       |> assign(:loading, false)
 
     {:ok, socket}
@@ -29,75 +24,84 @@ defmodule ChatBotsWeb.ChatLive do
 
   def handle_event("select_bot", %{"bot_id" => bot_id}, socket) do
     bot = Bots.get_bot(bot_id)
-    messages = Chats.new_chat(bot.id)
-    chat_items = [%Bubble{type: "info", text: "#{bot.name} has entered the chat"}]
-
-    socket =
-      socket
-      |> assign(:bot, bot)
-      |> assign(:messages, messages)
-      |> assign(:chat_items, chat_items)
+    socket = assign_messages_and_bot(socket, bot)
 
     {:noreply, socket}
   end
 
   def handle_event("submit_message", %{"message" => message_text}, socket) do
     # send a message to self to trigger the API call in the background
-    send(self(), {:request_chat, message_text})
+    send(self(), :request_chat)
 
-    # add user message to chat_items
-    user_message = %Bubble{type: "user", text: message_text}
-    chat_items = socket.assigns.chat_items ++ [user_message]
+    # add user message to messages
+    messages =
+      Chats.add_message(socket.assigns.messages, %Message{role: "user", content: message_text})
 
-    socket = assign(socket, chat_items: chat_items, loading: true)
+    socket = assign(socket, messages: messages, loading: true)
     {:noreply, socket}
   end
 
-  def handle_info({:request_chat, message_text}, socket) do
-    case ChatApi.send_message(socket.assigns.messages, message_text) do
-      {:ok, messages} ->
-        # parse the latest message into chat items
-        new_chat_items = messages |> List.last() |> Parser.parse() |> sort_chat_items()
-        chat_items = socket.assigns.chat_items ++ new_chat_items
+  defp assign_messages_and_bot(socket, bot) do
+    messages =
+      Chats.new_chat(bot.id)
+      |> Chats.add_message(%Message{role: "info", content: "#{bot.name} has entered the chat"})
+
+    assign(socket, messages: messages, bot: bot)
+  end
+
+  def handle_info(:request_chat, socket) do
+    filtered_messages = filter_messages_for_api(socket.assigns.messages)
+
+    case ChatApi.send_message(filtered_messages) do
+      {:ok, message} ->
+        messages = Chats.add_message(socket.assigns.messages, message)
 
         {:noreply,
          socket
-         |> assign(messages: messages, chat_items: chat_items, loading: false)
+         |> assign(messages: messages, loading: false)
          |> maybe_send_image_request()}
 
       {:error, error} ->
-        chat_items =
-          socket.assigns.chat_items ++ [%Bubble{type: "error", text: error["message"]}]
+        messages =
+          Chats.add_message(socket.assigns.messages, %Message{
+            role: "error",
+            content: error["message"]
+          })
 
-        {:noreply, assign(socket, chat_items: chat_items, loading: false)}
+        {:noreply, assign(socket, messages: messages, loading: false)}
     end
   end
 
   def handle_info({:request_image, image_prompt}, socket) do
     {:ok, file} = ImageApi.generate_image(image_prompt)
-    chat_items = socket.assigns.chat_items ++ [%Image{file: file}]
-    {:noreply, assign(socket, chat_items: chat_items, loading: false)}
+    image_attrs = %{file: file, prompt: image_prompt}
+    image_message = %{role: "image", content: Jason.encode!(image_attrs)}
+    messages = Chats.add_message(socket.assigns.messages, image_message)
+    {:noreply, assign(socket, messages: messages, loading: false)}
   end
 
-  # sort images last
-  defp sort_chat_items(chat_items) do
-    Enum.sort_by(chat_items, fn
-      %Image{} -> 1
-      _ -> 0
-    end)
+  defp convert_messages_to_chat_items(messages) do
+    messages
+    |> Enum.filter(&(&1.role != "system"))
+    |> Enum.flat_map(&Parser.parse(&1))
+  end
+
+  defp filter_messages_for_api(messages) do
+    messages
+    |> Enum.filter(&(&1.role in ["system", "user", "assistant"]))
   end
 
   defp maybe_send_image_request(socket) do
-    {image_requests, chat_items} =
-      Enum.split_with(socket.assigns.chat_items, &is_struct(&1, ImageRequest))
+    # check the latest message for an image prompt
+    image_prompt = socket.assigns.messages |> List.last() |> Parser.parse_image_prompt()
 
-    case image_requests do
-      [] ->
+    case image_prompt do
+      nil ->
         socket
 
-      [image_request] ->
-        send(self(), {:request_image, image_request.prompt})
-        assign(socket, chat_items: chat_items, loading: true)
+      _ ->
+        send(self(), {:request_image, image_prompt})
+        assign(socket, loading: true)
     end
   end
 
@@ -117,7 +121,7 @@ defmodule ChatBotsWeb.ChatLive do
     </form>
     <!-- chat box to display chat_items -->
     <div id="chat-box" class="flex flex-col">
-      <%= for chat_item <- @chat_items do %>
+      <%= for chat_item <- convert_messages_to_chat_items(@messages) do %>
         <.render_chat_item item={chat_item} />
       <% end %>
     </div>
