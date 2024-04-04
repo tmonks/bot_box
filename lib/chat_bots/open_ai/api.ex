@@ -8,27 +8,14 @@ defmodule ChatBots.OpenAi.Api do
   @doc """
   Sends a message to the chat bot and returns the updated chat.
   """
-  def send_message(messages, message_text) do
-    user_message = %Message{
-      role: "user",
-      content: message_text
-    }
-
-    # create a list of maps from the chat messages
-    message_maps =
-      (messages ++ [user_message])
-      |> Enum.map(&Map.from_struct(&1))
+  def send_message(messages) do
+    # convert Messages to maps
+    message_maps = Enum.map(messages, &Map.from_struct(&1))
 
     case Client.chat_completion(model: @model, messages: message_maps) do
       {:ok, %{choices: [choice | _]}} ->
         assistant_message = choice["message"] |> create_message_from_map()
-
-        updated_messages =
-          messages
-          |> Chats.add_message(user_message)
-          |> Chats.add_message(assistant_message)
-
-        {:ok, updated_messages}
+        {:ok, assistant_message}
 
       {:error, :timeout} ->
         {:error, %{"message" => "Your request timed out"}}

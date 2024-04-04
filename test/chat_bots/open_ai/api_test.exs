@@ -12,7 +12,7 @@ defmodule ChatBots.OpenAi.ApiTest do
   # mocks need to be verified when the test exits
   setup :verify_on_exit!
 
-  test "send_message/2 adds a response to the chat" do
+  test "send_message/2 sends a message and returns an assistant message" do
     bot = bot_fixture()
 
     message_text = "What is the meaning of life?"
@@ -30,11 +30,9 @@ defmodule ChatBots.OpenAi.ApiTest do
       api_success_fixture("42")
     end)
 
-    {:ok, updated_messages} = Api.send_message(messages)
+    {:ok, message} = Api.send_message(messages)
 
-    # assert the last message in the updated_chat is "42
-    assert %Message{role: "user", content: ^message_text} = updated_messages |> Enum.at(-2)
-    assert %Message{role: "assistant", content: "42"} = updated_messages |> Enum.at(-1)
+    assert %Message{role: "assistant", content: "42"} = message
   end
 
   test "send_message/2 returns an error tuple if the client returns an error" do
