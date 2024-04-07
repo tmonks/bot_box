@@ -1,15 +1,13 @@
 defmodule ChatBots.Chats.Chat do
   use Ecto.Schema
-  import Ecto.Changeset
+  alias ChatBots.Bots.Bot
+  alias ChatBots.Chats.Message
 
+  @primary_key {:id, :binary_id, autogenerate: true}
   schema "chats" do
-    timestamps()
-  end
+    has_many(:messages, Message)
+    belongs_to(:bot, Bot)
 
-  @doc false
-  def changeset(chat, attrs) do
-    chat
-    |> cast(attrs, [])
-    |> validate_required([])
+    timestamps()
   end
 end
