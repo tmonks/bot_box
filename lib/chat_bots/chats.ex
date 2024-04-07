@@ -1,6 +1,21 @@
 defmodule ChatBots.Chats do
-  alias ChatBots.Chats.Message
   alias ChatBots.Bots
+  alias ChatBots.Chats.Chat
+  alias ChatBots.Chats.Message
+  alias ChatBots.Repo
+
+  @doc """
+  Creates a new chat for the given bot_id.
+  """
+  def create_chat(bot) do
+    %Chat{}
+    |> Ecto.Changeset.change(bot_id: bot.id)
+    |> Repo.insert!()
+  end
+
+  @doc """
+  Creates a
+  """
 
   @doc """
   Creates a new chat with the given bot_id.

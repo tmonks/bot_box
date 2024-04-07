@@ -1,8 +1,17 @@
 defmodule ChatBots.ChatsTest do
   use ChatBots.DataCase
   alias ChatBots.Chats
+  alias ChatBots.Chats.Chat
   alias ChatBots.Chats.Message
   import ChatBots.Fixtures
+
+  describe "create_chat/1" do
+    test "creates a new chat for a bot" do
+      bot = %{id: bot_id} = bot_fixture()
+
+      assert %Chat{bot_id: ^bot_id} = Chats.create_chat(bot)
+    end
+  end
 
   test "new_chat/1 returns a list of messages containing the bot's system prompt" do
     bot = bot_fixture()
