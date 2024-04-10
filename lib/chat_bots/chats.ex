@@ -14,8 +14,11 @@ defmodule ChatBots.Chats do
   end
 
   @doc """
-  Creates a
+  Retrieves a chat by id
   """
+  def get_chat!(id) do
+    Repo.get!(Chat, id)
+  end
 
   @doc """
   Creates a new chat with the given bot_id.

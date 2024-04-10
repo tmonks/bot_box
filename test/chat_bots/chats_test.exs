@@ -3,14 +3,20 @@ defmodule ChatBots.ChatsTest do
   alias ChatBots.Chats
   alias ChatBots.Chats.Chat
   alias ChatBots.Chats.Message
+
   import ChatBots.Fixtures
+  import ChatBots.Factory
 
-  describe "create_chat/1" do
-    test "creates a new chat for a bot" do
-      bot = %{id: bot_id} = bot_fixture()
+  test "create_chat/1 creates a new chat for a bot" do
+    bot = %{id: bot_id} = insert(:bot)
 
-      assert %Chat{bot_id: ^bot_id} = Chats.create_chat(bot)
-    end
+    assert %Chat{bot_id: ^bot_id} = Chats.create_chat(bot)
+  end
+
+  test "get_chat!/1 returns the chat for a bot" do
+    %{id: chat_id} = insert(:chat)
+
+    assert %Chat{id: ^chat_id} = Chats.get_chat!(chat_id)
   end
 
   test "new_chat/1 returns a list of messages containing the bot's system prompt" do
