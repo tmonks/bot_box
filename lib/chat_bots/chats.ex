@@ -4,12 +4,16 @@ defmodule ChatBots.Chats do
   alias ChatBots.Chats.Message
   alias ChatBots.Repo
 
+  import Ecto.Changeset, only: [change: 2, put_assoc: 3]
+
   @doc """
   Creates a new chat for the given bot_id.
+  Adds a message with the bot's system prompt.
   """
   def create_chat(bot) do
     %Chat{}
-    |> Ecto.Changeset.change(bot_id: bot.id)
+    |> change(bot_id: bot.id)
+    |> put_assoc(:messages, [%Message{role: "system", content: bot.directive}])
     |> Repo.insert!()
   end
 
@@ -18,6 +22,17 @@ defmodule ChatBots.Chats do
   """
   def get_chat!(id) do
     Repo.get!(Chat, id)
+    |> Repo.preload(:messages)
+  end
+
+  @doc """
+  Creates a new message for the given chat
+  """
+  def create_message(chat, attrs) do
+    %Message{}
+    |> change(attrs)
+    |> put_assoc(:chat, chat)
+    |> Repo.insert!()
   end
 
   @doc """

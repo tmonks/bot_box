@@ -13,10 +13,24 @@ defmodule ChatBots.ChatsTest do
     assert %Chat{bot_id: ^bot_id} = Chats.create_chat(bot)
   end
 
+  test "create_chat/1 creates a chat with the bot's system prompt" do
+    bot = bot_fixture()
+
+    assert %Chat{messages: messages} = Chats.create_chat(bot)
+    assert [%Message{role: "system", content: "You are a helpful assistant."}] = messages
+  end
+
   test "get_chat!/1 returns the chat for a bot" do
     %{id: chat_id} = insert(:chat)
 
     assert %Chat{id: ^chat_id} = Chats.get_chat!(chat_id)
+  end
+
+  test "get_chat!/1 preloads messages" do
+    chat = insert(:chat, messages: [%{role: "system", content: "You are a helpful assistant."}])
+
+    assert [%Message{role: "system", content: "You are a helpful assistant."}] =
+             Chats.get_chat!(chat.id).messages
   end
 
   test "new_chat/1 returns a list of messages containing the bot's system prompt" do
@@ -43,5 +57,13 @@ defmodule ChatBots.ChatsTest do
     messages = Chats.add_message(messages, message1)
     messages = Chats.add_message(messages, message2)
     assert [_system_prompt, ^message1, ^message2] = messages
+  end
+
+  test "create_message/2 creates a new message on the given chat" do
+    chat = %{id: chat_id} = insert(:chat)
+    attrs = %{role: "user", content: "Hello"}
+
+    assert %Message{chat_id: ^chat_id, role: "user", content: "Hello"} =
+             Chats.create_message(chat, attrs)
   end
 end
