@@ -13,13 +13,8 @@ defmodule ChatBots.OpenAi.ApiTest do
   setup :verify_on_exit!
 
   test "send_message/2 sends a message and returns an assistant message" do
-    bot = bot_fixture()
-
     message_text = "What is the meaning of life?"
-
-    messages =
-      Chats.new_chat(bot.id)
-      |> Chats.add_message(%Message{role: "user", content: message_text})
+    messages = messages_fixture(message_text)
 
     # Set up the mock and assert the message is sent to the client as a map
     MockClient
@@ -32,17 +27,12 @@ defmodule ChatBots.OpenAi.ApiTest do
 
     {:ok, message} = Api.send_message(messages)
 
-    assert %Message{role: "assistant", content: "42"} = message
+    assert %{"role" => "assistant", "content" => "42"} = message
   end
 
   test "send_message/2 returns an error tuple if the client returns an error" do
-    bot = bot_fixture()
-
     message_text = "What is the meaning of life?"
-
-    messages =
-      Chats.new_chat(bot.id)
-      |> Chats.add_message(%Message{role: "user", content: message_text})
+    messages = messages_fixture(message_text)
 
     # Set up the mock and assert the message is sent to the client as a map
     MockClient |> expect(:chat_completion, fn _ -> api_error_fixture() end)
@@ -52,16 +42,21 @@ defmodule ChatBots.OpenAi.ApiTest do
   end
 
   test "send_message/2 can handle a :timeout error" do
-    bot = bot_fixture()
     message_text = "What is the meaning of life?"
-
-    messages =
-      Chats.new_chat(bot.id) |> Chats.add_message(%Message{role: "user", content: message_text})
+    messages = messages_fixture(message_text)
 
     # Set up the mock and assert the message is sent to the client as a map
     MockClient |> expect(:chat_completion, fn _ -> api_timeout_fixture() end)
 
     assert {:error, error} = Api.send_message(messages)
     assert error["message"] == "Your request timed out"
+  end
+
+  defp messages_fixture(message_text) do
+    bot = bot_fixture()
+
+    Chats.new_chat(bot.id)
+    |> Chats.add_message(%Message{role: "user", content: message_text})
+    |> Enum.map(&Map.take(&1, [:role, :content]))
   end
 end
