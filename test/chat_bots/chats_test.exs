@@ -63,7 +63,7 @@ defmodule ChatBots.ChatsTest do
     chat = %{id: chat_id} = insert(:chat)
     attrs = %{role: "user", content: "Hello"}
 
-    assert %Message{chat_id: ^chat_id, role: "user", content: "Hello"} =
+    assert {:ok, %Message{chat_id: ^chat_id, role: "user", content: "Hello"}} =
              Chats.create_message(chat, attrs)
   end
 end
