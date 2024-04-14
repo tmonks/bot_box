@@ -1,6 +1,5 @@
 defmodule ChatBotsWeb.ChatLive do
   use ChatBotsWeb, :live_view
-  alias ChatBots.Bots
   alias ChatBots.Chats
   alias ChatBots.Chats.Bubble
   alias ChatBots.Chats.Image
@@ -9,24 +8,16 @@ defmodule ChatBotsWeb.ChatLive do
   alias ChatBots.StabilityAi.Api, as: ImageApi
   alias ChatBots.Parser
 
-  def mount(_params, _session, socket) do
-    bots = Bots.list_bots()
-    bot = hd(bots)
+  def mount(%{"id" => chat_id}, _session, socket) do
+    chat = Chats.get_chat!(chat_id)
 
     socket =
       socket
-      |> assign(:bots, bots)
-      |> assign_messages_and_bot(bot)
+      |> assign(:chat, chat)
+      |> assign(:messages, chat.messages)
       |> assign(:loading, false)
 
     {:ok, socket}
-  end
-
-  def handle_event("select_bot", %{"bot_id" => bot_id}, socket) do
-    bot = Bots.get_bot(bot_id)
-    socket = assign_messages_and_bot(socket, bot)
-
-    {:noreply, socket}
   end
 
   def handle_event("submit_message", %{"message" => message_text}, socket) do
@@ -34,27 +25,23 @@ defmodule ChatBotsWeb.ChatLive do
     send(self(), :request_chat)
 
     # add user message to messages
-    messages =
-      Chats.add_message(socket.assigns.messages, %Message{role: "user", content: message_text})
+    {:ok, message} =
+      Chats.create_message(socket.assigns.chat, %{role: "user", content: message_text})
+
+    messages = socket.assigns.messages ++ [message]
 
     socket = assign(socket, messages: messages, loading: true)
     {:noreply, socket}
   end
 
-  defp assign_messages_and_bot(socket, bot) do
-    messages =
-      Chats.new_chat(bot.id)
-      |> Chats.add_message(%Message{role: "info", content: "#{bot.name} has entered the chat"})
-
-    assign(socket, messages: messages, bot: bot)
-  end
-
   def handle_info(:request_chat, socket) do
-    filtered_messages = filter_messages_for_api(socket.assigns.messages)
+    %{chat: chat, messages: messages} = socket.assigns
+    filtered_messages = filter_messages_for_api(messages)
 
     case ChatApi.send_message(filtered_messages) do
-      {:ok, message} ->
-        messages = Chats.add_message(socket.assigns.messages, message)
+      {:ok, message_attrs} ->
+        {:ok, message} = Chats.create_message(chat, message_attrs)
+        messages = socket.assigns.messages ++ [message]
 
         {:noreply,
          socket
@@ -110,15 +97,6 @@ defmodule ChatBotsWeb.ChatLive do
     <h1 class="mt-0 mb-2 text-5xl font-medium leading-tight text-primary">
       Bot Box
     </h1>
-    <form id="bot-select-form" phx-change="select_bot">
-      <select
-        id="bot-select"
-        name="bot_id"
-        class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline mb-2"
-      >
-        <%= options_for_select(bot_options(@bots), @bot.id) %>
-      </select>
-    </form>
     <!-- chat box to display chat_items -->
     <div id="chat-box" class="flex flex-col">
       <%= for chat_item <- convert_messages_to_chat_items(@messages) do %>
@@ -186,6 +164,4 @@ defmodule ChatBotsWeb.ChatLive do
         "#{base_classes} bot-bubble text-gray-800 bg-gray-300"
     end
   end
-
-  defp bot_options(bots), do: Enum.map(bots, &{&1.name, &1.id})
 end

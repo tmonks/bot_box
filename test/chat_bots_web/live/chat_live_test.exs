@@ -1,11 +1,13 @@
 defmodule ChatBotsWeb.ChatLiveTest do
   use ChatBotsWeb.ConnCase, async: false
   import Mox
+  import ChatBots.Factory
   import ChatBots.Fixtures
   import ChatBots.Fixtures.StabilityAiFixtures
   import Phoenix.LiveViewTest
 
   alias ChatBots.OpenAi.MockClient, as: OpenAiMock
+  alias ChatBots.Repo
   alias ChatBots.StabilityAi.MockClient, as: StabilityAiMock
 
   setup :verify_on_exit!
@@ -20,23 +22,16 @@ defmodule ChatBotsWeb.ChatLiveTest do
     assert response(conn, 401)
   end
 
-  test "renders the page", %{conn: conn} do
-    _bot = bot_fixture()
-    {:ok, _view, html} = live(conn, "/")
-    assert html =~ "Bot Box"
-  end
+  test "loads a chat from the database", %{conn: conn} do
+    chat = insert(:chat, messages: [%{role: "info", content: "Welcome to Bot Box"}])
 
-  test "has a select to choose the bot", %{conn: conn} do
-    bot = bot_fixture()
-    {:ok, view, _html} = live(conn, "/")
-
-    assert has_element?(view, "#bot-select")
-    assert has_element?(view, "#bot-select option", bot.name)
+    {:ok, _view, html} = live(conn, "/chat/#{chat.id}")
+    assert html =~ "Welcome to Bot Box"
   end
 
   test "can enter a message and see it appear in the chat", %{conn: conn} do
-    _bot = bot_fixture()
-    {:ok, view, _html} = live(conn, "/")
+    chat = insert(:chat)
+    {:ok, view, _html} = live(conn, "/chat/#{chat.id}")
 
     message_text = "Hello!"
 
@@ -49,10 +44,11 @@ defmodule ChatBotsWeb.ChatLiveTest do
     |> render_submit()
 
     assert has_element?(view, "#chat-box p.user-bubble", ~r/Hello!/)
+    chat = Repo.reload(chat) |> Repo.preload(:messages)
+    assert chat.messages |> Enum.any?(&(&1.role == "user" && &1.content == "Hello!"))
   end
 
   test "can receive and view a response from the bot", %{conn: conn} do
-    bot_fixture()
     {:ok, view, _html} = live(conn, "/")
 
     message_text = "I am a user"
@@ -264,8 +260,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
   defp expect_chat_api_call(message_sent, message_received \\ "42") do
     OpenAiMock
     |> expect(:chat_completion, fn [model: _, messages: messages] ->
-      assert [_, user_message] = messages
-      assert user_message == %{role: "user", content: message_sent}
+      assert %{role: "user", content: ^message_sent} = List.last(messages)
       api_success_fixture(message_received)
     end)
   end
