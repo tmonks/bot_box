@@ -36,7 +36,7 @@ defmodule ChatBotsWeb.ChatLive do
 
   def handle_info(:request_chat, socket) do
     %{chat: chat, messages: messages} = socket.assigns
-    filtered_messages = filter_messages_for_api(messages)
+    filtered_messages = prepare_messages(messages)
 
     case ChatApi.send_message(filtered_messages) do
       {:ok, message_attrs} ->
@@ -73,9 +73,10 @@ defmodule ChatBotsWeb.ChatLive do
     |> Enum.flat_map(&Parser.parse(&1))
   end
 
-  defp filter_messages_for_api(messages) do
+  defp prepare_messages(messages) do
     messages
     |> Enum.filter(&(&1.role in ["system", "user", "assistant"]))
+    |> Enum.map(&Map.take(&1, [:role, :content]))
   end
 
   defp maybe_send_image_request(socket) do
