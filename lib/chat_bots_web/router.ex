@@ -18,7 +18,7 @@ defmodule ChatBotsWeb.Router do
   scope "/", ChatBotsWeb do
     pipe_through :browser
 
-    # live "/" ChatIndexLive, :index
+    live "/", HomeLive, :index
     live "/chat/:id", ChatLive, :chat
   end
 
