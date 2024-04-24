@@ -51,7 +51,8 @@ defmodule ChatBots.MixProject do
       {:phoenix_ecto, "~> 4.4"},
       {:dotenvy, "~> 0.7.0"},
       {:req, "~> 0.4.0"},
-      {:ex_machina, "~> 2.7.0", only: :test}
+      {:ex_machina, "~> 2.7.0", only: :test},
+      {:timex, "~> 3.0"}
     ]
   end
 
