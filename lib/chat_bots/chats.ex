@@ -5,6 +5,7 @@ defmodule ChatBots.Chats do
   alias ChatBots.Repo
 
   import Ecto.Changeset
+  import Ecto.Query
 
   @doc """
   Creates a new chat for the given bot_id.
@@ -56,8 +57,41 @@ defmodule ChatBots.Chats do
   Preloads messages
   """
   def list_chats do
-    Chat
+    preload_query = preload_latest_message_query()
+
+    from(c in Chat,
+      preload: [:messages, latest_message: ^preload_query]
+    )
     |> Repo.all()
-    |> Repo.preload(:messages)
+  end
+
+  # defp preload_latest_direct_message(query) do
+  #   ranking_query =
+  #     from(m in SmsMessage,
+  #       select: %{id: m.id, row_number: over(row_number(), :message_partition)},
+  #       windows: [message_partition: [partition_by: :thread_id, order_by: [desc: m.inserted_at]]]
+  #     )
+
+  #   latest_direct_message_query =
+  #     from(m in SmsMessage,
+  #       join: r in subquery(ranking_query),
+  #       on: m.id == r.id and r.row_number == 1
+  #     )
+
+  #   query
+  #   |> preload(latest_direct_message: ^latest_direct_message_query)
+  # end
+
+  defp preload_latest_message_query do
+    ranking_query =
+      from(m in Message,
+        select: %{id: m.id, row_number: over(row_number(), :message_partition)},
+        windows: [message_partition: [partition_by: :chat_id, order_by: [desc: m.inserted_at]]]
+      )
+
+    from(m in Message,
+      join: r in subquery(ranking_query),
+      on: m.id == r.id and r.row_number == 1
+    )
   end
 end

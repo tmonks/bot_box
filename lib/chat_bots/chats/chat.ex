@@ -5,8 +5,9 @@ defmodule ChatBots.Chats.Chat do
 
   @primary_key {:id, :binary_id, autogenerate: true}
   schema "chats" do
-    has_many(:messages, Message)
     belongs_to(:bot, Bot)
+    has_many(:messages, Message)
+    has_one(:latest_message, Message)
 
     timestamps()
   end

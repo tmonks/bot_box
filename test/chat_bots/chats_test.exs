@@ -80,4 +80,14 @@ defmodule ChatBots.ChatsTest do
     assert [chat] = Chats.list_chats()
     assert [%Message{id: ^message_id}] = chat.messages
   end
+
+  test "list_chats/0 preloads the latest_message for each chat" do
+    chat = insert(:chat)
+    %{id: latest_message_id} = insert(:message, chat: chat, inserted_at: Timex.now())
+    insert(:message, chat: chat, inserted_at: Timex.now() |> Timex.shift(hours: -1))
+    insert(:message, chat: chat, inserted_at: Timex.now() |> Timex.shift(hours: -2))
+
+    assert [chat] = Chats.list_chats()
+    assert %Message{id: ^latest_message_id} = chat.latest_message
+  end
 end
