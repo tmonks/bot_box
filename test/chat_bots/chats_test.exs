@@ -66,4 +66,18 @@ defmodule ChatBots.ChatsTest do
     assert {:ok, %Message{chat_id: ^chat_id, role: "user", content: "Hello"}} =
              Chats.create_message(chat, attrs)
   end
+
+  test "list_chats/0 lists all existing chats" do
+    %{id: id} = insert(:chat)
+
+    assert [%Chat{id: ^id}] = Chats.list_chats()
+  end
+
+  test "list_chats/0 preloads messages" do
+    chat = insert(:chat)
+    %{id: message_id} = insert(:message, chat: chat)
+
+    assert [chat] = Chats.list_chats()
+    assert [%Message{id: ^message_id}] = chat.messages
+  end
 end

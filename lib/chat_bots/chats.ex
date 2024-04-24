@@ -50,4 +50,14 @@ defmodule ChatBots.Chats do
   def add_message(messages, message) do
     messages ++ [message]
   end
+
+  @doc """
+  Lists all chats
+  Preloads messages
+  """
+  def list_chats do
+    Chat
+    |> Repo.all()
+    |> Repo.preload(:messages)
+  end
 end

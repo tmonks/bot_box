@@ -1,8 +1,6 @@
 defmodule ChatBotsWeb.HomeLive do
   use ChatBotsWeb, :live_view
 
-  alias ChatBots.Chats
-
   @impl true
   def mount(_params, _session, socket) do
     {:ok, socket}
