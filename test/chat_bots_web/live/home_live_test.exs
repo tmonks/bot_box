@@ -34,5 +34,15 @@ defmodule ChatBotsWeb.HomeLiveTest do
   end
 
   test "shows an excerpt of the last message on each chat", %{conn: conn} do
+    chat = insert(:chat)
+    message = insert(:message, chat: chat, content: "Some witty message")
+
+    {:ok, view, _html} = live(conn, "/")
+
+    assert has_element?(
+             view,
+             "#chat-#{chat.id} div[data-role=content]",
+             "Some witty message"
+           )
   end
 end

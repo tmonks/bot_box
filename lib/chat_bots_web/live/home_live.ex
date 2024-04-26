@@ -22,7 +22,7 @@ defmodule ChatBotsWeb.HomeLive do
           <div>😃</div>
           <div class="flex flex-col">
             <div><%= chat.bot.name %></div>
-            <div>Message text here</div>
+            <div data-role="content"><%= chat.latest_message.content %></div>
           </div>
           <div data-role="time">
             <%= Relative.format!(chat.latest_message.inserted_at, "{relative}") %>
