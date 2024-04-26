@@ -90,4 +90,12 @@ defmodule ChatBots.ChatsTest do
     assert [chat] = Chats.list_chats()
     assert %Message{id: ^latest_message_id} = chat.latest_message
   end
+
+  test "list_chats/0 preloads bot" do
+    bot = insert(:bot, name: "Bob")
+    chat = insert(:chat, bot: bot)
+    insert(:message, chat: chat)
+
+    assert [%Chat{bot: ^bot}] = Chats.list_chats()
+  end
 end
