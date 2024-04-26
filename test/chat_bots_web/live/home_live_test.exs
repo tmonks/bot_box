@@ -45,4 +45,12 @@ defmodule ChatBotsWeb.HomeLiveTest do
              "Some witty message"
            )
   end
+
+  test "includes a drop-down list of bots to start a chat with", %{conn: conn} do
+    bot = insert(:bot, name: "BobBot")
+    {:ok, view, _html} = live(conn, "/")
+
+    assert has_element?(view, "#bot-select")
+    assert has_element?(view, "#bot-select option", "BobBot")
+  end
 end
