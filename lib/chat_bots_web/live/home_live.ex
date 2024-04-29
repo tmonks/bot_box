@@ -13,13 +13,22 @@ defmodule ChatBotsWeb.HomeLive do
   end
 
   @impl true
+  def handle_event("new_chat", %{"bot_id" => bot_id}, socket) do
+    bot = Bots.get_bot(bot_id)
+    chat = Chats.create_chat(bot)
+    socket = push_navigate(socket, to: ~p"/chat/#{chat.id}")
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div>
       <div class="mt-0 mb-2 text-4xl font-medium leading-tight text-primary">
         Bot Box
       </div>
-      <form id="bot-select-form" phx-change="select_bot">
+      <form id="bot-select-form" phx-submit="new_chat">
         <select
           id="bot-select"
           name="bot_id"
@@ -27,6 +36,7 @@ defmodule ChatBotsWeb.HomeLive do
         >
           <%= options_for_select(bot_options(@bots), []) %>
         </select>
+        <button class="bg-primary" type="submit">New Chat</button>
       </form>
       <%= for chat <- @chats do %>
         <div id={"chat-#{chat.id}"} class="flex flex-row items-center">

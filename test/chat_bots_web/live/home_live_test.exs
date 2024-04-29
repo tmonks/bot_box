@@ -2,11 +2,14 @@ defmodule ChatBotsWeb.HomeLiveTest do
   use ChatBotsWeb.ConnCase, async: false
   import Phoenix.LiveViewTest
   import ChatBots.Factory
+  alias ChatBots.Chats.Chat
+  alias ChatBots.Repo
 
   setup :login_user
 
   test "lists existing chats", %{conn: conn} do
     chat = insert(:chat)
+    insert(:message, chat: chat)
     {:ok, view, _html} = live(conn, "/")
 
     assert has_element?(view, "#chat-#{chat.id}")
@@ -15,6 +18,7 @@ defmodule ChatBotsWeb.HomeLiveTest do
   test "shows the bot's name for each chat", %{conn: conn} do
     bot = insert(:bot, name: "Bob")
     chat = insert(:chat, bot: bot)
+    insert(:message, chat: chat)
     {:ok, view, _html} = live(conn, "/")
 
     assert has_element?(view, "#chat-#{chat.id}", "Bob")
@@ -22,7 +26,7 @@ defmodule ChatBotsWeb.HomeLiveTest do
 
   test "shows the relative time of the last message on each chat", %{conn: conn} do
     chat = insert(:chat)
-    message = insert(:message, chat: chat, inserted_at: Timex.now() |> Timex.shift(minutes: -5))
+    insert(:message, chat: chat, inserted_at: Timex.now() |> Timex.shift(minutes: -5))
 
     {:ok, view, _html} = live(conn, "/")
 
@@ -35,7 +39,7 @@ defmodule ChatBotsWeb.HomeLiveTest do
 
   test "shows an excerpt of the last message on each chat", %{conn: conn} do
     chat = insert(:chat)
-    message = insert(:message, chat: chat, content: "Some witty message")
+    insert(:message, chat: chat, content: "Some witty message")
 
     {:ok, view, _html} = live(conn, "/")
 
@@ -46,11 +50,31 @@ defmodule ChatBotsWeb.HomeLiveTest do
            )
   end
 
+  # test "redirects to ChatLive when a chat is clicked", %{conn: conn} do
+  # end
+
   test "includes a drop-down list of bots to start a chat with", %{conn: conn} do
-    bot = insert(:bot, name: "BobBot")
+    insert(:bot, name: "BobBot")
     {:ok, view, _html} = live(conn, "/")
 
     assert has_element?(view, "#bot-select")
     assert has_element?(view, "#bot-select option", "BobBot")
+    assert has_element?(view, "#bot-select-form button", "New Chat")
+  end
+
+  test "can create a new chat and redirect to it", %{conn: conn} do
+    _bot1 = insert(:bot, name: "Bot 1")
+    bot2 = %{id: bot2_id} = insert(:bot, name: "Bot 2")
+    {:ok, view, _html} = live(conn, "/")
+
+    redirect =
+      view
+      |> form("#bot-select-form", %{"bot_id" => bot2.id})
+      |> render_submit()
+
+    assert {:error, {:live_redirect, %{to: redirect_url}}} = redirect
+    assert redirect_url =~ "/chat/"
+    chat_id = redirect_url |> String.split("/") |> List.last()
+    assert %{bot_id: ^bot2_id} = Repo.get!(Chat, chat_id)
   end
 end
