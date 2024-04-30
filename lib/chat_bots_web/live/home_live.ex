@@ -39,16 +39,18 @@ defmodule ChatBotsWeb.HomeLive do
         <button class="bg-primary" type="submit">New Chat</button>
       </form>
       <%= for chat <- @chats do %>
-        <div id={"chat-#{chat.id}"} class="flex flex-row items-center">
-          <div>😃</div>
-          <div class="flex flex-col">
-            <div><%= chat.bot.name %></div>
-            <div data-role="content"><%= chat.latest_message.content %></div>
+        <.link navigate={~p"/chat/#{chat.id}"} id={"chat-#{chat.id}"}>
+          <div class="flex flex-row items-center">
+            <div>😃</div>
+            <div class="flex flex-col">
+              <div><%= chat.bot.name %></div>
+              <div data-role="content"><%= chat.latest_message.content %></div>
+            </div>
+            <div data-role="time">
+              <%= Relative.format!(chat.latest_message.inserted_at, "{relative}") %>
+            </div>
           </div>
-          <div data-role="time">
-            <%= Relative.format!(chat.latest_message.inserted_at, "{relative}") %>
-          </div>
-        </div>
+        </.link>
       <% end %>
     </div>
     """

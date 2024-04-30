@@ -50,8 +50,21 @@ defmodule ChatBotsWeb.HomeLiveTest do
            )
   end
 
-  # test "redirects to ChatLive when a chat is clicked", %{conn: conn} do
-  # end
+  test "redirects to ChatLive when a chat is clicked", %{conn: conn} do
+    chat = insert(:chat)
+    insert(:message, chat: chat, content: "Hello")
+
+    {:ok, view, _html} = live(conn, "/")
+
+    open_browser(view)
+
+    view
+    |> element("#chat-#{chat.id}")
+    |> render_click()
+    |> follow_redirect(conn, ~p"/chat/#{chat.id}")
+
+    # assert redirected_to(view, ~p"/chat/#{chat.id}")
+  end
 
   test "includes a drop-down list of bots to start a chat with", %{conn: conn} do
     insert(:bot, name: "BobBot")
