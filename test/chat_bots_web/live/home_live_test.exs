@@ -56,8 +56,6 @@ defmodule ChatBotsWeb.HomeLiveTest do
 
     {:ok, view, _html} = live(conn, "/")
 
-    open_browser(view)
-
     view
     |> element("#chat-#{chat.id}")
     |> render_click()

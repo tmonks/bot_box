@@ -3,7 +3,6 @@ defmodule ChatBotsWeb.ChatLive do
   alias ChatBots.Chats
   alias ChatBots.Chats.Bubble
   alias ChatBots.Chats.Image
-  alias ChatBots.Chats.Message
   alias ChatBots.OpenAi.Api, as: ChatApi
   alias ChatBots.StabilityAi.Api, as: ImageApi
   alias ChatBots.Parser
@@ -49,22 +48,21 @@ defmodule ChatBotsWeb.ChatLive do
          |> maybe_send_image_request()}
 
       {:error, error} ->
-        messages =
-          Chats.add_message(socket.assigns.messages, %Message{
-            role: "error",
-            content: error["message"]
-          })
-
-        {:noreply, assign(socket, messages: messages, loading: false)}
+        {:noreply,
+         socket
+         |> add_message(%{role: "error", content: error["message"]})
+         |> assign(socket, loading: false)}
     end
   end
 
   def handle_info({:request_image, image_prompt}, socket) do
     {:ok, file} = ImageApi.generate_image(image_prompt)
     image_attrs = %{file: file, prompt: image_prompt}
-    image_message = %{role: "image", content: Jason.encode!(image_attrs)}
-    messages = Chats.add_message(socket.assigns.messages, image_message)
-    {:noreply, assign(socket, messages: messages, loading: false)}
+    message_attrs = %{role: "image", content: Jason.encode!(image_attrs)}
+
+    {:noreply,
+     add_message(socket, message_attrs)
+     |> assign(socket, loading: false)}
   end
 
   defp convert_messages_to_chat_items(messages) do
@@ -91,6 +89,13 @@ defmodule ChatBotsWeb.ChatLive do
         send(self(), {:request_image, image_prompt})
         assign(socket, loading: true)
     end
+  end
+
+  defp add_message(socket, message_attrs) do
+    {:ok, message} = Chats.create_message(socket.assigns.chat, message_attrs)
+    messages = socket.assigns.messages ++ [message]
+
+    assign(socket, messages: messages)
   end
 
   def render(assigns) do

@@ -127,6 +127,8 @@ defmodule ChatBotsWeb.ChatLiveTest do
     |> render_submit()
 
     assert has_element?(view, "#chat-box p", ~r/Error.*Invalid request/)
+    chat = Repo.preload(chat, :messages)
+    assert chat.messages |> Enum.any?(&(&1.role == "error"))
   end
 
   test "breaks up mult-line responses into multiple chat bubbles", %{conn: conn} do
@@ -211,6 +213,9 @@ defmodule ChatBotsWeb.ChatLiveTest do
     file_name = expected_file_name(12345)
 
     assert has_element?(view, "img[src='/images/#{file_name}']")
+
+    chat = Repo.preload(chat, :messages)
+    assert chat.messages |> Enum.any?(&(&1.role == "image"))
   end
 
   # Set up the mock and assert the message is sent to the client with message_text
