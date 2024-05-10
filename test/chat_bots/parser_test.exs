@@ -46,6 +46,13 @@ defmodule ChatBots.ParserTest do
              ] = Parser.parse(response)
     end
 
+    test "returns nil if there is no UI content in the response (such as an image prompt)" do
+      response =
+        %{role: "assistant", content: %{image_prompt: "An image of a cat"}} |> make_json_message()
+
+      assert [] = Parser.parse(response)
+    end
+
     test "parses a message from a text response containing only a number" do
       response = %{
         role: "assistant",
