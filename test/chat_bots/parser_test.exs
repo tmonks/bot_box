@@ -3,6 +3,7 @@ defmodule ChatBots.ParserTest do
 
   alias ChatBots.Chats.Bubble
   alias ChatBots.Chats.Image
+  alias ChatBots.Chats.ImageRequest
   alias ChatBots.Chats.Message
   alias ChatBots.Parser
 
@@ -46,13 +47,6 @@ defmodule ChatBots.ParserTest do
              ] = Parser.parse(response)
     end
 
-    test "returns nil if there is no UI content in the response (such as an image prompt)" do
-      response =
-        %{role: "assistant", content: %{image_prompt: "An image of a cat"}} |> make_json_message()
-
-      assert [] = Parser.parse(response)
-    end
-
     test "parses a message from a text response containing only a number" do
       response = %{
         role: "assistant",
@@ -87,28 +81,15 @@ defmodule ChatBots.ParserTest do
       assert [%Image{file: "/path/to/image.jpg", prompt: "An image of a cat"}] =
                Parser.parse(response)
     end
-  end
 
-  describe "parse_image_prompt/1" do
-    test "parses an image response from a JSON response" do
-      response = make_json_message(%{image_prompt: "An image of a cat"})
+    test "can parse an image request from a JSON response" do
+      response =
+        %{
+          role: "assistant",
+          content: Jason.encode!(%{image_prompt: "An image of a cat"})
+        }
 
-      assert "An image of a cat" = Parser.parse_image_prompt(response)
-    end
-
-    test "returns nil if the image_prompt key is not present" do
-      response = make_json_message(%{text: "Hello, world!"})
-
-      assert Parser.parse_image_prompt(response) |> is_nil()
-    end
-
-    test "returns nil if the message is not a JSON response" do
-      response = %{
-        role: "assistant",
-        content: "Hello, world!"
-      }
-
-      assert Parser.parse_image_prompt(response) |> is_nil()
+      assert [%ImageRequest{prompt: "An image of a cat"}] = Parser.parse(response)
     end
   end
 

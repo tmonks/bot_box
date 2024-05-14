@@ -3,6 +3,7 @@ defmodule ChatBotsWeb.ChatLive do
   alias ChatBots.Chats
   alias ChatBots.Chats.Bubble
   alias ChatBots.Chats.Image
+  alias ChatBots.Chats.ImageRequest
   alias ChatBots.OpenAi.Api, as: ChatApi
   alias ChatBots.StabilityAi.Api, as: ImageApi
   alias ChatBots.Parser
@@ -79,14 +80,18 @@ defmodule ChatBotsWeb.ChatLive do
 
   defp maybe_send_image_request(socket) do
     # check the latest message for an image prompt
-    image_prompt = socket.assigns.messages |> List.last() |> Parser.parse_image_prompt()
+    image_request =
+      socket.assigns.messages
+      |> List.last()
+      |> Parser.parse()
+      |> Enum.find(&is_struct(&1, ImageRequest))
 
-    case image_prompt do
+    case image_request do
       nil ->
         socket
 
       _ ->
-        send(self(), {:request_image, image_prompt})
+        send(self(), {:request_image, image_request.prompt})
         assign(socket, loading: true)
     end
   end
@@ -144,6 +149,14 @@ defmodule ChatBotsWeb.ChatLive do
   defp render_chat_item(%{item: %Bubble{}} = assigns) do
     ~H"""
     <p class={get_message_classes(@item.type)}><%= @item.text %></p>
+    """
+  end
+
+  defp render_chat_item(%{item: %ImageRequest{}} = assigns) do
+    ~H"""
+    <p class={get_message_classes("bot")}>
+      <%= @item.prompt %>
+    </p>
     """
   end
 

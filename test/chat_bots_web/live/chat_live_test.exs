@@ -189,6 +189,28 @@ defmodule ChatBotsWeb.ChatLiveTest do
     :timer.sleep(100)
   end
 
+  test "displays image prompts from the API", %{conn: conn} do
+    chat = insert(:chat)
+    {:ok, view, _html} = live(conn, "/chat/#{chat.id}")
+
+    message_text = "Make a picture of a cat"
+
+    chat_response = %{
+      text: "here is your picture",
+      image_prompt: "A picture of a cat"
+    }
+
+    expect_chat_api_call(message_text, chat_response)
+    expect_image_api_call("A picture of a cat")
+
+    view
+    |> form("#chat-form", %{"message" => message_text})
+    |> render_submit()
+
+    assert has_element?(view, "p.bot-bubble", ~r/here is your picture/)
+    assert has_element?(view, "p.bot-bubble", ~r/A picture of a cat/)
+  end
+
   test "sends image prompts to the StabilityAI API and displays the image returned", %{conn: conn} do
     chat = insert(:chat)
     {:ok, view, _html} = live(conn, "/chat/#{chat.id}")

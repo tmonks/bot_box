@@ -4,6 +4,7 @@ defmodule ChatBots.Parser do
   """
   alias ChatBots.Chats.Bubble
   alias ChatBots.Chats.Image
+  alias ChatBots.Chats.ImageRequest
 
   @doc """
   Parses a chat response into a list of chat items
@@ -50,17 +51,7 @@ defmodule ChatBots.Parser do
     [%Bubble{type: "bot", text: "#{response}"}]
   end
 
+  defp parse_chat_item({"image_prompt", prompt}), do: [%ImageRequest{prompt: prompt}]
+
   defp parse_chat_item(_), do: []
-
-  @doc """
-  Parses an image_prompt if present in the JSON response
-  """
-  def parse_image_prompt(%{content: content, role: "assistant"}) do
-    maybe_decode_json(content)
-    |> parse_image_prompt()
-  end
-
-  def parse_image_prompt(%{"image_prompt" => prompt}), do: prompt
-
-  def parse_image_prompt(_), do: nil
 end
