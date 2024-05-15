@@ -91,6 +91,19 @@ defmodule ChatBots.ParserTest do
 
       assert [%ImageRequest{prompt: "An image of a cat"}] = Parser.parse(response)
     end
+
+    test "can parse multiple elements from a single JSON response" do
+      response =
+        %{
+          role: "assistant",
+          content: Jason.encode!(%{text: "Here you go", image_prompt: "An image of a cat"})
+        }
+
+      assert [
+               %ImageRequest{prompt: "An image of a cat"},
+               %Bubble{type: "bot", text: "Here you go"}
+             ] = Parser.parse(response)
+    end
   end
 
   defp make_json_message(%{role: role, content: content}) do
