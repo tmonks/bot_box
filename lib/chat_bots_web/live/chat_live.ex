@@ -2,6 +2,7 @@ defmodule ChatBotsWeb.ChatLive do
   use ChatBotsWeb, :live_view
   alias ChatBots.Chats
   alias ChatBots.Chats.Bubble
+  alias ChatBots.Chats.Choice
   alias ChatBots.Chats.Image
   alias ChatBots.Chats.ImageRequest
   alias ChatBots.OpenAi.Api, as: ChatApi
@@ -167,6 +168,20 @@ defmodule ChatBotsWeb.ChatLive do
         <span>loading...</span>
       <% else %>
         <img style="width: 512px" src={"/images/" <> @item.file} />
+      <% end %>
+    </div>
+    """
+  end
+
+  defp render_chat_item(%{item: %Choice{}} = assigns) do
+    ~H"""
+    <div class="flex flex-col gap-4 items-start">
+      <%= for option <- @item.options do %>
+        <div>
+          <button class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-full">
+            <%= option %>
+          </button>
+        </div>
       <% end %>
     </div>
     """
