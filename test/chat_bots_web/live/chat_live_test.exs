@@ -233,6 +233,32 @@ defmodule ChatBotsWeb.ChatLiveTest do
     assert has_element?(view, "button", ~r/Blue/)
   end
 
+  test "clicking a Choice button sends the option text to the API", %{conn: conn} do
+    chat = insert(:chat)
+
+    insert(:message,
+      chat: chat,
+      role: "assistant",
+      content:
+        Jason.encode!(%{
+          text: "Choose a color",
+          options: ["Red", "Green", "Blue"]
+        })
+    )
+
+    {:ok, view, _html} = live(conn, "/chat/#{chat.id}")
+
+    # "Red" gets sent to the API
+    expect_chat_api_call("Red", "You chose Red")
+
+    view
+    |> element("button", "Red")
+    |> render_click()
+
+    # "Red" is displayed as a user message
+    assert has_element?(view, "p.user-bubble", ~r/Red/)
+  end
+
   test "sends image prompts to the StabilityAI API and displays the image returned", %{conn: conn} do
     chat = insert(:chat)
     {:ok, view, _html} = live(conn, "/chat/#{chat.id}")

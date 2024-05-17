@@ -35,6 +35,19 @@ defmodule ChatBotsWeb.ChatLive do
     {:noreply, socket}
   end
 
+  def handle_event("choice_clicked", %{"option" => option}, socket) do
+    # send a message to self to trigger the API call in the background
+    send(self(), :request_chat)
+
+    # add user choice to messages
+    {:ok, message} = Chats.create_message(socket.assigns.chat, %{role: "user", content: option})
+
+    messages = socket.assigns.messages ++ [message]
+
+    socket = assign(socket, messages: messages, loading: true)
+    {:noreply, socket}
+  end
+
   def handle_info(:request_chat, socket) do
     %{chat: chat, messages: messages} = socket.assigns
     filtered_messages = prepare_messages(messages)
@@ -178,7 +191,11 @@ defmodule ChatBotsWeb.ChatLive do
     <div class="flex flex-col gap-4 items-start">
       <%= for option <- @item.options do %>
         <div>
-          <button class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-full">
+          <button
+            class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-full"
+            phx-click="choice_clicked"
+            phx-value-option={option}
+          >
             <%= option %>
           </button>
         </div>
