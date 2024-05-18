@@ -31,21 +31,7 @@ defmodule ChatBotsWeb.ChatLive do
 
     messages = socket.assigns.messages ++ [message]
 
-    socket = assign(socket, messages: messages, loading: true)
-    {:noreply, socket}
-  end
-
-  def handle_event("choice_clicked", %{"option" => option}, socket) do
-    # send a message to self to trigger the API call in the background
-    send(self(), :request_chat)
-
-    # add user choice to messages
-    {:ok, message} = Chats.create_message(socket.assigns.chat, %{role: "user", content: option})
-
-    messages = socket.assigns.messages ++ [message]
-
-    socket = assign(socket, messages: messages, loading: true)
-    {:noreply, socket}
+    {:noreply, assign(socket, messages: messages, loading: true)}
   end
 
   def handle_info(:request_chat, socket) do
@@ -139,7 +125,7 @@ defmodule ChatBotsWeb.ChatLive do
           id="message"
           name="message"
           rows="1"
-          placeholder="Type a messsage..."
+          placeholder="Type a message..."
           class="flex-grow bg-white border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
         </textarea>
@@ -193,8 +179,8 @@ defmodule ChatBotsWeb.ChatLive do
         <div>
           <button
             class="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded-full"
-            phx-click="choice_clicked"
-            phx-value-option={option}
+            phx-click="submit_message"
+            phx-value-message={option}
           >
             <%= option %>
           </button>
