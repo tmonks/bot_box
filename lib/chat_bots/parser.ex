@@ -34,11 +34,16 @@ defmodule ChatBots.Parser do
   defp gather_chat_items(content_map) when is_map(content_map) do
     content_map
     |> Map.to_list()
+    |> Enum.sort_by(&chat_item_priority/1)
     |> Enum.map(&parse_chat_item/1)
     |> List.flatten()
   end
 
   defp gather_chat_items(content_map), do: parse_chat_item(content_map)
+
+  defp chat_item_priority({"text", _}), do: 1
+  defp chat_item_priority({"options", _}), do: 2
+  defp chat_item_priority({"image_prompt", _}), do: 3
 
   defp parse_chat_item({"text", response}), do: parse_chat_item(response)
 

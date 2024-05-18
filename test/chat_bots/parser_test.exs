@@ -101,8 +101,8 @@ defmodule ChatBots.ParserTest do
         }
 
       assert [
-               %ImageRequest{prompt: "An image of a cat"},
-               %Bubble{type: "bot", text: "Here you go"}
+               %Bubble{type: "bot", text: "Here you go"},
+               %ImageRequest{prompt: "An image of a cat"}
              ] = Parser.parse(response)
     end
 
@@ -114,6 +114,25 @@ defmodule ChatBots.ParserTest do
         }
 
       assert [%Choice{options: ["Yes", "No"]}] = Parser.parse(response)
+    end
+
+    test "returns text before image prompts and choices" do
+      response =
+        %{
+          role: "assistant",
+          content:
+            Jason.encode!(%{
+              image_prompt: "picture of a cat and a dog",
+              options: ["Cats", "Dogs"],
+              text: "Do you like cats or dogs?"
+            })
+        }
+
+      assert [
+               %Bubble{type: "bot", text: "Do you like cats or dogs?"},
+               %Choice{options: ["Cats", "Dogs"]},
+               %ImageRequest{prompt: "picture of a cat and a dog"}
+             ] = Parser.parse(response)
     end
   end
 
