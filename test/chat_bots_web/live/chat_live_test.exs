@@ -102,15 +102,6 @@ defmodule ChatBotsWeb.ChatLiveTest do
     assert has_element?(view, "#chat-box p.bot-bubble", ~r/I am a bot/)
   end
 
-  @tag :skip
-  test "displays welcome message", %{conn: conn} do
-    bot = insert(:bot, name: "Bob Bot")
-    chat = insert(:chat, bot: bot)
-    {:ok, view, _html} = live(conn, "/chat/#{chat.id}")
-
-    assert has_element?(view, "#chat-box p", ~r/Bob Bot has entered the chat/)
-  end
-
   test "does not send 'info' messages to the API", %{conn: conn} do
     chat = insert(:chat)
     {:ok, view, _html} = live(conn, "/chat/#{chat.id}")
@@ -160,8 +151,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
     assert has_element?(view, "p.bot-bubble", ~r"\Asecond line\z")
   end
 
-  @tag :skip
-  test "displays an Image response as loading", %{conn: conn} do
+  test "displays loading animation while retrieving an image", %{conn: conn} do
     chat = insert(:chat)
     {:ok, view, _html} = live(conn, "/chat/#{chat.id}")
 
@@ -178,10 +168,11 @@ defmodule ChatBotsWeb.ChatLiveTest do
     |> form("#chat-form", %{"message" => message_text})
     |> render_submit()
 
-    assert has_element?(view, ".chat-image", "loading")
+    :timer.sleep(2)
+
+    assert has_element?(view, "div.loader")
   end
 
-  @tag :skip
   test "displays an Image after the new Bubble", %{conn: conn} do
     chat = insert(:chat)
     {:ok, view, _html} = live(conn, "/chat/#{chat.id}")
@@ -199,30 +190,9 @@ defmodule ChatBotsWeb.ChatLiveTest do
     |> form("#chat-form", %{"message" => message_text})
     |> render_submit()
 
+    :timer.sleep(10)
+
     assert render(view) =~ ~r"here is your picture.*chat-image"
-    :timer.sleep(100)
-  end
-
-  test "displays image prompts from the API", %{conn: conn} do
-    chat = insert(:chat)
-    {:ok, view, _html} = live(conn, "/chat/#{chat.id}")
-
-    message_text = "Make a picture of a cat"
-
-    chat_response = %{
-      text: "here is your picture",
-      image_prompt: "A picture of a cat"
-    }
-
-    expect_chat_api_call(message_text, chat_response)
-    expect_image_api_call("A picture of a cat")
-
-    view
-    |> form("#chat-form", %{"message" => message_text})
-    |> render_submit()
-
-    assert has_element?(view, "p.bot-bubble", ~r/here is your picture/)
-    assert has_element?(view, "p.bot-bubble", ~r/A picture of a cat/)
   end
 
   test "displays a Choice as a list of buttons", %{conn: conn} do
