@@ -110,7 +110,7 @@ defmodule ChatBotsWeb.ChatLive do
       Bot Box
     </h1>
     <!-- chat box to display chat_items -->
-    <div id="chat-box" class="flex flex-col">
+    <div id="chat-box" class="flex flex-col gap-4">
       <%= for chat_item <- convert_messages_to_chat_items(@messages) do %>
         <.render_chat_item item={chat_item} />
       <% end %>
@@ -184,7 +184,7 @@ defmodule ChatBotsWeb.ChatLive do
   end
 
   defp get_message_classes(type) do
-    base_classes = "p-2 my-2 rounded-lg text-sm w-auto max-w-md"
+    base_classes = "p-2 rounded-lg text-sm w-auto max-w-md"
 
     case type do
       "user" ->
