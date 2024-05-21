@@ -72,6 +72,20 @@ defmodule ChatBotsWeb.ChatLiveTest do
     refute html =~ "You are a helpful assistant"
   end
 
+  test "doesn't display ImageRequests", %{conn: conn} do
+    chat = insert(:chat)
+
+    insert(:message,
+      chat: chat,
+      role: "assistant",
+      content: Jason.encode!(%{image_prompt: "A picture of a cat"})
+    )
+
+    {:ok, _view, html} = live(conn, "/chat/#{chat.id}")
+
+    refute html =~ "A picture of a cat"
+  end
+
   test "displays a user-friendly role title for each message", %{conn: conn} do
     chat = insert(:chat)
     {:ok, view, _html} = live(conn, "/chat/#{chat.id}")

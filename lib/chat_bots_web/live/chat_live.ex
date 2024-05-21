@@ -70,6 +70,7 @@ defmodule ChatBotsWeb.ChatLive do
     messages
     |> Enum.filter(&(&1.role != "system"))
     |> Enum.flat_map(&Parser.parse(&1))
+    |> Enum.filter(&(not is_struct(&1, ImageRequest)))
   end
 
   defp prepare_messages(messages) do
@@ -149,14 +150,6 @@ defmodule ChatBotsWeb.ChatLive do
   defp render_chat_item(%{item: %Bubble{}} = assigns) do
     ~H"""
     <p class={get_message_classes(@item.type)}><%= @item.text %></p>
-    """
-  end
-
-  defp render_chat_item(%{item: %ImageRequest{}} = assigns) do
-    ~H"""
-    <p class={get_message_classes("bot")}>
-      <%= @item.prompt %>
-    </p>
     """
   end
 
