@@ -52,7 +52,7 @@ defmodule ChatBotsWeb.ChatLive do
         {:noreply,
          socket
          |> add_message(%{role: "error", content: error["message"]})
-         |> assign(socket, loading: false)}
+         |> assign(loading: false)}
     end
   end
 
@@ -61,9 +61,7 @@ defmodule ChatBotsWeb.ChatLive do
     image_attrs = %{file: file, prompt: image_prompt}
     message_attrs = %{role: "image", content: Jason.encode!(image_attrs)}
 
-    {:noreply,
-     add_message(socket, message_attrs)
-     |> assign(socket, loading: false)}
+    {:noreply, add_message(socket, message_attrs) |> assign(loading: false)}
   end
 
   defp convert_messages_to_chat_items(messages) do
