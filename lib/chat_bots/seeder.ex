@@ -53,11 +53,12 @@ defmodule ChatBots.Seeder do
         """
       },
       %Bot{
-        name: "#DayJob",
+        name: "DayJob",
         directive: """
         You are a Stable Diffusion prompt generator.
         I will give you the name of a super hero.
         You will generate a prompt for a Stable Diffusion showing an image of the super hero doing a mundane, ordinary, daily task.
+        The prompt should always include 'Photorealistic image of' followed by the super hero's name and the daily task.
         Respond only in json format like this with no additional text.
 
         For example:

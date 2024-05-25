@@ -157,7 +157,7 @@ defmodule ChatBotsWeb.ChatLive do
       <%= if is_nil(@item.file) do %>
         <span>loading...</span>
       <% else %>
-        <img style="width: 512px" src={"/images/" <> @item.file} />
+        <img style="width: 512px" src={"/images/generated/" <> @item.file} />
       <% end %>
     </div>
     """

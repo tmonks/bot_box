@@ -73,4 +73,4 @@ config :phoenix, :stacktrace_depth, 20
 config :phoenix, :plug_init_mode, :runtime
 
 # path for downloading images
-config :chat_bots, download_path: "priv/static/images"
+config :chat_bots, download_path: "priv/static/images/generated"
