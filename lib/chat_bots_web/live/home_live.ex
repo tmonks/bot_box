@@ -49,14 +49,14 @@ defmodule ChatBotsWeb.HomeLive do
         <%= for chat <- @chats do %>
           <.link navigate={~p"/chat/#{chat.id}"} id={"chat-#{chat.id}"}>
             <div class="flex flex-row items-center gap-4">
-              <div class="w-48"><.bot_icon /></div>
+              <div class="flex-none w-20"><.bot_icon /></div>
               <div class="flex flex-col">
                 <div class="text-lg font-bold"><%= chat.bot.name %></div>
                 <div class="text-sm font-light" data-role="content">
                   <%= chat.latest_message.content %>
                 </div>
               </div>
-              <div class="w-80" data-role="time">
+              <div class="flex-none w-32 font-light text-right pr-4" data-role="time">
                 <%= Relative.format!(chat.latest_message.inserted_at, "{relative}") %>
               </div>
             </div>
