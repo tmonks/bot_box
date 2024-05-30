@@ -1,7 +1,12 @@
 defmodule ChatBotsWeb.HomeLive do
+  alias ChatBots.Chats.Bubble
   use ChatBotsWeb, :live_view
   alias ChatBots.Bots
   alias ChatBots.Chats
+  alias ChatBots.Chats.Choice
+  alias ChatBots.Chats.Image
+  alias ChatBots.Chats.ImageRequest
+  alias ChatBots.Parser
   alias Timex.Format.DateTime.Formatters.Relative
 
   @impl true
@@ -50,10 +55,10 @@ defmodule ChatBotsWeb.HomeLive do
           <.link navigate={~p"/chat/#{chat.id}"} id={"chat-#{chat.id}"}>
             <div class="flex flex-row items-center gap-4">
               <div class="flex-none w-20"><.bot_icon /></div>
-              <div class="flex flex-col">
+              <div class="flex flex-auto flex-col">
                 <div class="text-lg font-bold"><%= chat.bot.name %></div>
                 <div class="text-sm font-light" data-role="content">
-                  <%= chat.latest_message.content %>
+                  <%= make_preview(chat) %>
                 </div>
               </div>
               <div class="flex-none w-32 font-light text-right pr-4" data-role="time">
@@ -85,4 +90,18 @@ defmodule ChatBotsWeb.HomeLive do
   end
 
   defp bot_options(bots), do: Enum.map(bots, &{&1.name, &1.id})
+
+  defp make_preview(chat) do
+    chat.latest_message
+    |> Parser.parse()
+    |> List.last()
+    |> item_to_text()
+  end
+
+  defp item_to_text(%Bubble{type: "system"}), do: "(no messages yet)"
+  defp item_to_text(%Bubble{text: text}), do: text
+  defp item_to_text(%Image{prompt: prompt}), do: prompt
+  defp item_to_text(%ImageRequest{prompt: prompt}), do: prompt
+  defp item_to_text(%Choice{options: options}), do: Enum.join(options, ", ")
+  defp item_to_text(item), do: inspect(item)
 end

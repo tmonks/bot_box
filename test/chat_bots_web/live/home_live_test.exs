@@ -60,8 +60,6 @@ defmodule ChatBotsWeb.HomeLiveTest do
     |> element("#chat-#{chat.id}")
     |> render_click()
     |> follow_redirect(conn, ~p"/chat/#{chat.id}")
-
-    # assert redirected_to(view, ~p"/chat/#{chat.id}")
   end
 
   test "includes a drop-down list of bots to start a chat with", %{conn: conn} do
@@ -87,5 +85,87 @@ defmodule ChatBotsWeb.HomeLiveTest do
     assert redirect_url =~ "/chat/"
     chat_id = redirect_url |> String.split("/") |> List.last()
     assert %{bot_id: ^bot2_id} = Repo.get!(Chat, chat_id)
+  end
+
+  test "displays the image description when an image was the latest message", %{conn: conn} do
+    chat = insert(:chat)
+
+    insert(:message,
+      chat: chat,
+      role: "image",
+      content: Jason.encode!(%{file: "filename.jpg", prompt: "A picture of a cat"})
+    )
+
+    {:ok, _view, html} = live(conn, "/")
+
+    assert element_text(html, "#chat-#{chat.id} div[data-role=content]") == "A picture of a cat"
+  end
+
+  test "displays the image prompt when an image request was the latest message", %{conn: conn} do
+    chat = insert(:chat)
+
+    insert(:message,
+      chat: chat,
+      role: "assistant",
+      content: Jason.encode!(%{image_prompt: "A picture of a cat"})
+    )
+
+    {:ok, _view, html} = live(conn, "/")
+
+    assert element_text(html, "#chat-#{chat.id} div[data-role=content]") ==
+             "A picture of a cat"
+  end
+
+  test "displays options when a Choice was the latest message", %{conn: conn} do
+    chat = insert(:chat)
+
+    insert(:message,
+      chat: chat,
+      role: "assistant",
+      content: Jason.encode!(%{options: ["Option 1", "Option 2"]})
+    )
+
+    {:ok, _view, html} = live(conn, "/")
+
+    assert element_text(html, "#chat-#{chat.id} div[data-role=content]") ==
+             "Option 1, Option 2"
+  end
+
+  test "displays message text when a normal message was the last message", %{conn: conn} do
+    chat = insert(:chat)
+
+    insert(:message,
+      chat: chat,
+      role: "assistant",
+      content: "Hello there!"
+    )
+
+    {:ok, _view, html} = live(conn, "/")
+
+    assert element_text(html, "#chat-#{chat.id} div[data-role=content]") ==
+             "Hello there!"
+  end
+
+  test "displays '(no messages yet)' if the sytem prompt is the only message", %{conn: conn} do
+    chat = insert(:chat)
+
+    insert(:message,
+      chat: chat,
+      role: "system",
+      content: "You are a helpful bot"
+    )
+
+    {:ok, _view, html} = live(conn, "/")
+
+    assert element_text(html, "#chat-#{chat.id} div[data-role=content]") ==
+             "(no messages yet)"
+  end
+
+  defp element_text(html, dom_id) do
+    html
+    |> Floki.parse_document!()
+    |> Floki.find(dom_id)
+    |> Floki.text()
+    |> String.trim()
   end
 end
