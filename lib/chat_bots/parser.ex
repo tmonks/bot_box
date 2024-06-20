@@ -44,12 +44,13 @@ defmodule ChatBots.Parser do
   defp chat_item_priority({"text", _}), do: 1
   defp chat_item_priority({"options", _}), do: 2
   defp chat_item_priority({"image_prompt", _}), do: 3
+  defp chat_item_priority(_), do: 4
 
   defp parse_chat_item({"text", response}), do: parse_chat_item(response)
 
   defp parse_chat_item(response) when is_binary(response) do
     response
-    |> String.split("\n\n")
+    |> String.split("\n")
     |> Enum.map(&%Bubble{type: "bot", text: &1})
   end
 

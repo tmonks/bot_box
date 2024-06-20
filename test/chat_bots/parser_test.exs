@@ -39,7 +39,7 @@ defmodule ChatBots.ParserTest do
     test "splits mult-line content into multiple Bubbles from a text response" do
       response = %{
         role: "assistant",
-        content: "Hello, world!\n\nHow are you?"
+        content: "Hello, world!\nHow are you?"
       }
 
       assert [
@@ -64,7 +64,7 @@ defmodule ChatBots.ParserTest do
     end
 
     test "splits multi-line content into multiple Bubbles from a JSON response" do
-      response = make_json_message(%{text: "Hello, world!\n\nHow are you?"})
+      response = make_json_message(%{text: "Hello, world!\nHow are you?"})
 
       assert [
                %Bubble{type: "bot", text: "Hello, world!"},
