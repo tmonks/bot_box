@@ -5,6 +5,7 @@ defmodule ChatBots.Bots.Bot do
   schema "bots" do
     field(:directive, :string)
     field(:name, :string)
+    field(:json_mode, :boolean, default: false)
 
     timestamps()
   end
