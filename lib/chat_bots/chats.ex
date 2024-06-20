@@ -23,7 +23,7 @@ defmodule ChatBots.Chats do
   """
   def get_chat!(id) do
     Repo.get!(Chat, id)
-    |> Repo.preload(:messages)
+    |> Repo.preload([:messages, :bot])
   end
 
   @doc """

@@ -1,5 +1,6 @@
 defmodule ChatBots.ChatsTest do
   use ChatBots.DataCase
+  alias ChatBots.Bots.Bot
   alias ChatBots.Chats
   alias ChatBots.Chats.Chat
   alias ChatBots.Chats.Message
@@ -31,6 +32,12 @@ defmodule ChatBots.ChatsTest do
 
     assert [%Message{role: "system", content: "You are a helpful assistant."}] =
              Chats.get_chat!(chat.id).messages
+  end
+
+  test "get_chat!/1 preloads the bot" do
+    chat = insert(:chat, messages: [%{role: "system", content: "You are a helpful assistant."}])
+
+    assert %{bot: %Bot{}} = Chats.get_chat!(chat.id)
   end
 
   test "new_chat/1 returns a list of messages containing the bot's system prompt" do

@@ -107,7 +107,8 @@ defmodule ChatBotsWeb.ChatLiveTest do
     {:ok, view, _html} = live(conn, "/chat/#{chat.id}")
 
     OpenAiMock
-    |> expect(:chat_completion, fn [model: _, messages: messages] ->
+    |> expect(:chat_completion, fn params ->
+      messages = params[:messages]
       assert not Enum.any?(messages, &(&1.role == "info"))
       assert %{role: "user", content: "Hello bot"} in messages
       api_success_fixture("Hello human")
@@ -299,7 +300,8 @@ defmodule ChatBotsWeb.ChatLiveTest do
   # Set up the mock and assert the message is sent to the client with message_text
   defp expect_chat_api_call(message_sent, message_received \\ "42") do
     OpenAiMock
-    |> expect(:chat_completion, fn [model: _, messages: messages] ->
+    |> expect(:chat_completion, fn params ->
+      messages = params[:messages]
       assert %{role: "user", content: ^message_sent} = List.last(messages)
       api_success_fixture(message_received)
     end)

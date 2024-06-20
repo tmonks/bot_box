@@ -5,7 +5,7 @@ defmodule ChatBots.OpenAi.HttpClient do
   @behaviour ChatBots.OpenAi.Client
 
   @impl true
-  def chat_completion(model: model, messages: messages) do
-    OpenAI.chat_completion(model: model, messages: messages)
+  def chat_completion(params) do
+    OpenAI.chat_completion(params)
   end
 end
