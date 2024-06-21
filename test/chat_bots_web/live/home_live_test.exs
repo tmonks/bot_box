@@ -39,7 +39,7 @@ defmodule ChatBotsWeb.HomeLiveTest do
 
   test "shows an excerpt of the last message on each chat", %{conn: conn} do
     chat = insert(:chat)
-    insert(:message, chat: chat, content: "Some witty message")
+    insert(:message, chat: chat, content: "Some witty message", role: "assistant")
 
     {:ok, view, _html} = live(conn, "/")
 

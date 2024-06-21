@@ -291,7 +291,7 @@ defmodule ChatBotsWeb.ChatLiveTest do
 
     file_name = expected_file_name(12345)
 
-    assert has_element?(view, "img[src='/images/#{file_name}']")
+    assert has_element?(view, "img[src='/images/generated/#{file_name}']")
 
     chat = Repo.preload(chat, :messages)
     assert chat.messages |> Enum.any?(&(&1.role == "image"))
