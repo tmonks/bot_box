@@ -18,4 +18,13 @@ defmodule ChatBots.Bots do
     |> where([b], b.id == ^id)
     |> Repo.one()
   end
+
+  @doc """
+  create_bot/1 creates a new bot with the given attributes.
+  """
+  def create_bot(attrs) do
+    %Bot{}
+    |> Bot.changeset(attrs)
+    |> Repo.insert()
+  end
 end

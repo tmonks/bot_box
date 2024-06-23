@@ -15,5 +15,6 @@ defmodule ChatBots.Bots.Bot do
     bot
     |> cast(attrs, [:name, :directive])
     |> validate_required([:name, :directive])
+    |> unique_constraint(:name)
   end
 end
