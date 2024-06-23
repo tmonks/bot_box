@@ -1,6 +1,7 @@
 defmodule ChatBots.BotsTest do
   use ChatBots.DataCase
   alias ChatBots.Bots
+  alias ChatBots.Repo
   import ChatBots.Fixtures
 
   test "list_bots/0 returns a list of Bots" do
@@ -23,12 +24,12 @@ defmodule ChatBots.BotsTest do
     assert bot.directive == "You are a helpful assistant."
   end
 
-  test "create_bot/1 returns an error if a bot with the same name already exists" do
-    bot_fixture(%{name: "Test Bot", directive: "You are a helpful assistant."})
+  test "create_bot/1 updates the bot if the name is already taken" do
+    bot_fixture(%{name: "Test Bot", directive: "You are a useless assistant."})
 
-    assert {:error, changeset} =
+    assert {:ok, bot} =
              Bots.create_bot(%{name: "Test Bot", directive: "You are a helpful assistant."})
 
-    assert {"has already been taken", _} = changeset.errors[:name]
+    assert %{directive: "You are a helpful assistant."} = Repo.reload(bot)
   end
 end
