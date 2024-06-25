@@ -25,6 +25,9 @@ defmodule ChatBots.Bots do
   def create_bot(attrs) do
     %Bot{}
     |> Bot.changeset(attrs)
-    |> Repo.insert(on_conflict: :replace_all, conflict_target: :name)
+    |> Repo.insert(
+      on_conflict: {:replace_all_except, [:id, :inserted_at]},
+      conflict_target: :name
+    )
   end
 end
