@@ -7,7 +7,7 @@ defmodule ChatBots.Factory do
 
   def bot_factory do
     %Bot{
-      name: "Test Bot",
+      name: sequence(:bot_name, &"Test Bot #{&1}"),
       directive: "You are a helpful assistant."
     }
   end

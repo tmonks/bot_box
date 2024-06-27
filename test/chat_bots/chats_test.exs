@@ -80,6 +80,14 @@ defmodule ChatBots.ChatsTest do
     assert [%Chat{id: ^id}] = Chats.list_chats()
   end
 
+  test "list_chats/0 sorts chats newest to oldest" do
+    %{id: chat1_id} = insert(:chat, inserted_at: Timex.now() |> Timex.shift(hours: -2))
+    %{id: chat2_id} = insert(:chat, inserted_at: Timex.now() |> Timex.shift(hours: -1))
+    %{id: chat3_id} = insert(:chat, inserted_at: Timex.now())
+
+    assert [%Chat{id: ^chat3_id}, %Chat{id: ^chat2_id}, %Chat{id: ^chat1_id}] = Chats.list_chats()
+  end
+
   test "list_chats/0 preloads messages" do
     chat = insert(:chat)
     %{id: message_id} = insert(:message, chat: chat)

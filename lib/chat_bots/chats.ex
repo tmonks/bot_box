@@ -59,7 +59,10 @@ defmodule ChatBots.Chats do
   def list_chats do
     preload_query = preload_latest_message_query()
 
-    from(c in Chat, preload: [:bot, :messages, latest_message: ^preload_query])
+    from(c in Chat,
+      order_by: [desc: :inserted_at],
+      preload: [:bot, :messages, latest_message: ^preload_query]
+    )
     |> Repo.all()
   end
 
