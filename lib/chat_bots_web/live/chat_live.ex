@@ -38,7 +38,7 @@ defmodule ChatBotsWeb.ChatLive do
     %{chat: chat, messages: messages} = socket.assigns
     filtered_messages = prepare_messages(messages)
 
-    case ChatApi.send_message(chat.bot, filtered_messages) do
+    case ChatApi.send_message(chat.bot, filtered_messages) |> IO.inspect() do
       {:ok, message_attrs} ->
         {:ok, message} = Chats.create_message(chat, message_attrs)
         messages = socket.assigns.messages ++ [message]

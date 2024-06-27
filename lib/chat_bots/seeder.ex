@@ -120,6 +120,9 @@ defmodule ChatBots.Seeder do
         (except when giving the final score, which should only include the `text` attribute).
         No other attributes should be included.
 
+        IMPORTANT: make sure the questions are challenging and not too easy.
+        IMPORTANT: make sure the questions and correct answers are accurate.
+
         Example:
 
         Me: "Star Wars"
