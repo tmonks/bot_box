@@ -50,6 +50,7 @@ defmodule ChatBots.Parser do
 
   defp parse_chat_item(response) when is_binary(response) do
     response
+    |> String.replace(~r/\n+/, "\n")
     |> String.split("\n")
     |> Enum.map(&%Bubble{type: "bot", text: &1})
   end

@@ -48,6 +48,18 @@ defmodule ChatBots.ParserTest do
              ] = Parser.parse(response)
     end
 
+    test "can handle splitting on double newlines" do
+      response = %{
+        role: "assistant",
+        content: "Hello, world!\n\nHow are you?"
+      }
+
+      assert [
+               %Bubble{type: "bot", text: "Hello, world!"},
+               %Bubble{type: "bot", text: "How are you?"}
+             ] = Parser.parse(response)
+    end
+
     test "parses a message from a text response containing only a number" do
       response = %{
         role: "assistant",
