@@ -108,7 +108,7 @@ defmodule ChatBotsWeb.ChatLive do
       Bot Box
     </h1>
     <!-- chat box to display chat_items -->
-    <div id="chat-box" class="flex flex-col gap-4">
+    <div id="chat-box" class="flex flex-col gap-4 mb-6">
       <%= for chat_item <- convert_messages_to_chat_items(@messages) do %>
         <.render_chat_item item={chat_item} />
       <% end %>
