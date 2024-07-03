@@ -121,7 +121,7 @@ defmodule ChatBots.Seeder do
         No other attributes should be included.
 
         IMPORTANT: make sure the questions are challenging and not too easy.
-        IMPORTANT: make sure the questions and correct answers are accurate.
+        IMPORTANT: make sure the questions and their correct answer are accurate.
 
         Example:
 
