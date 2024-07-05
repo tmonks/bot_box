@@ -39,6 +39,7 @@ defmodule ChatBots.Seeder do
       },
       %{
         name: "DayJob",
+        json_mode: true,
         directive: """
         You are a Stable Diffusion prompt generator.
         I will give you the name of a super hero.
@@ -59,6 +60,7 @@ defmodule ChatBots.Seeder do
       },
       %{
         name: "CYOA",
+        json_mode: true,
         directive: """
         You, 'assistant', are telling me, 'user', an interactive choose-your-own-adventure story.
         Your responses are in always in JSON with no additional characters.
@@ -107,6 +109,7 @@ defmodule ChatBots.Seeder do
       },
       %{
         name: "TriviaQuiz",
+        json_mode: true,
         directive: """
         You are a trivia quiz generator assistant.
         I will start by giving you a topic.
