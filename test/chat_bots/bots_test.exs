@@ -18,10 +18,15 @@ defmodule ChatBots.BotsTest do
 
   test "create_bot/1 creates a new Bot" do
     assert {:ok, bot} =
-             Bots.create_bot(%{name: "Test Bot", directive: "You are a helpful assistant."})
+             Bots.create_bot(%{
+               name: "Test Bot",
+               directive: "You are a helpful assistant.",
+               json_mode: true
+             })
 
     assert bot.name == "Test Bot"
     assert bot.directive == "You are a helpful assistant."
+    assert bot.json_mode == true
   end
 
   test "create_bot/1 updates the bot if the name is already taken" do

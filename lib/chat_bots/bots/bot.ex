@@ -13,7 +13,7 @@ defmodule ChatBots.Bots.Bot do
   @doc false
   def changeset(bot, attrs) do
     bot
-    |> cast(attrs, [:name, :directive])
+    |> cast(attrs, [:name, :directive, :json_mode])
     |> validate_required([:name, :directive])
     |> unique_constraint(:name)
   end
