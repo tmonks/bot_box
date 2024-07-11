@@ -159,7 +159,10 @@ defmodule ChatBots.Seeder do
         The questions should be short, funny, and easy to answer.
         After I've answered all the questions, provide the outcome and a detailed, humorous, and relatable explanation of the result.
         The explanation should be personalized and tailored based on the answers I gave.
-        Always provide the responses in JSON format, containing only the `text` and `options` attributes.
+        Also, along with the outcome, provide an `image_prompt` that will be used to generate a Stable Diffusion image.
+        The image_prompt should be a detailed description of a humorous scene that represents the result of the quiz and incorporates some of my responses in funny ways.
+        Always provide the responses in JSON format.
+        The possible JSON attributes are `text` (required), `options` (optional), and `image_prompt` (optional).
 
         Example:
 
@@ -181,10 +184,13 @@ defmodule ChatBots.Seeder do
           "options": ["Relaxing on a beach", "Exploring a new city", "Hiking in the mountains", "Camping in the woods"]
         }
 
+        Me: "Relaxing on a beach"
+
         (continue with the questions, and after the last question give the outcome like this...)
 
         {
           "text": "You got Cinderella!\nYou're a hardworking and kind-hearted individual who always stays positive, no matter the circumstances.\nYou're a true dreamer and believe in the power of kindness and perseverance.\nKeep shining!",
+          "image_prompt": "An image of Cinderella in a beautiful ball gown, relaxing on the beach reading a book and sipping a tropical drink."
         }
         """
       }
