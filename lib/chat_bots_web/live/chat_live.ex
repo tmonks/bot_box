@@ -108,7 +108,7 @@ defmodule ChatBotsWeb.ChatLive do
       Bot Box
     </h1>
     <!-- chat box to display chat_items -->
-    <div id="chat-box" class="flex flex-col gap-4 mb-6">
+    <div id="chat-box" class="flex flex-col gap-4 mb-2">
       <%= for chat_item <- convert_messages_to_chat_items(@messages) do %>
         <.render_chat_item item={chat_item} />
       <% end %>
@@ -119,7 +119,7 @@ defmodule ChatBotsWeb.ChatLive do
     <% end %>
     <!-- chat form with textarea to enter message -->
     <form id="chat-form" phx-submit="submit_message">
-      <div class="flex items-center space-x-4 pt-2">
+      <div class="flex items-center space-x-4 mt-10 pt-2">
         <textarea
           id="message"
           name="message"
@@ -165,11 +165,11 @@ defmodule ChatBotsWeb.ChatLive do
 
   defp render_chat_item(%{item: %Choice{}} = assigns) do
     ~H"""
-    <div class="flex gap-4">
+    <div class="flex flex-col md:flex-row gap-4">
       <%= for option <- @item.options do %>
         <div>
           <button
-            class="bg-gray-400 hover:bg-gray-600 text-gray-800 py-2 px-4 rounded"
+            class="bg-gray-300 hover:bg-gray-600 text-gray-800 py-2 px-4 rounded"
             phx-click="submit_message"
             phx-value-message={option}
           >
@@ -189,7 +189,7 @@ defmodule ChatBotsWeb.ChatLive do
         "#{base_classes} user-bubble text-white bg-blue-500 self-end"
 
       "bot" ->
-        "#{base_classes} bot-bubble text-white bg-fuchsia-500"
+        "#{base_classes} bot-bubble text-white bg-purple-500"
 
       _ ->
         "#{base_classes} text-gray-800 bg-gray-300"
