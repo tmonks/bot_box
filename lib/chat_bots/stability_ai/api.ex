@@ -34,7 +34,7 @@ defmodule ChatBots.StabilityAi.Api do
         style_preset: "enhance",
         text_prompts: [
           %{text: prompt, weight: 1},
-          %{text: "blurry, bad", weight: -1}
+          %{text: "blurry, bad, disfigured, ugly, extra limbs, missing fingers", weight: -1}
         ]
       }
       |> Map.merge(params)
