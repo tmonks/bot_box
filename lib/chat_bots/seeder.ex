@@ -162,7 +162,10 @@ defmodule ChatBots.Seeder do
         Also, along with the outcome, provide an `image_prompt` that will be used to generate a Stable Diffusion image.
         The image_prompt should be a detailed description of a humorous scene that represents the result of the quiz and incorporates some of my responses in funny ways.
         Always provide the responses in JSON format.
-        The possible JSON attributes are `text` (required), `options` (optional), and `image_prompt` (optional).
+        The possible JSON attributes are `text`, `options`, and `image_prompt`.
+        `text` should always be present.
+        `options` should be present when asking questions.
+        `image_prompt` should be present when giving the outcome.
 
         Example:
 
