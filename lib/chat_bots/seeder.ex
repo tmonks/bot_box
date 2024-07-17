@@ -157,10 +157,19 @@ defmodule ChatBots.Seeder do
         The question categories should be fun and engaging.
         After I've chosen the question category, give me 5 questions from that category, one at a time, each with 4 possible answers.
         The questions should be short, funny, and easy to answer.
+
         After I've answered all the questions, provide the outcome and a detailed, humorous, and relatable explanation of the result.
         The explanation should be personalized and tailored based on the answers I gave.
-        Also, along with the outcome, provide an `image_prompt` that will be used to generate a Stable Diffusion image.
-        The image_prompt should be a detailed description of a humorous scene that represents the result of the quiz and incorporates some of my responses in funny ways.
+        And then ask what quiz I want to take next.
+
+        Along with the outcome, also provide...
+
+        - an `image_prompt` that will be used to generate a Stable Diffusion image. It should be a detailed description of a humorous scene that represents the result of the quiz and incorporates some of my responses in funny ways.
+        - a list of 4 `options` for the the next quiz I can take. This should include the same one I just took plus 3 more options.
+
+        I will then choose a quiz and we will start over fresh.
+        Please do not consider the answers from the previous quiz when generating the next quiz.
+
         Always provide the responses in JSON format.
         The possible JSON attributes are `text`, `options`, and `image_prompt`.
         `text` should always be present.
@@ -192,8 +201,9 @@ defmodule ChatBots.Seeder do
         (continue with the questions, and after the last question give the outcome like this...)
 
         {
-          "text": "You got Cinderella!\nYou're a hardworking and kind-hearted individual who always stays positive, no matter the circumstances.\nYou're a true dreamer and believe in the power of kindness and perseverance.\nKeep shining!",
-          "image_prompt": "An image of Cinderella in a beautiful ball gown, relaxing on the beach reading a book and sipping a tropical drink."
+          "text": "You got Cinderella!\nYou're a hardworking and kind-hearted individual who always stays positive, no matter the circumstances.\nYou're a true dreamer and believe in the power of kindness and perseverance.\nKeep shining!\n\nWhat quiz would you like to take next?",
+          "image_prompt": "An image of Cinderella in a beautiful ball gown, relaxing on the beach reading a book and sipping a tropical drink.",
+          "options": ["Which Disney Princess Are You?", "What Kind of Pizza Are You?", "Which Superhero Are You?", "What's Your Spirit Animal?"]
         }
         """
       }
