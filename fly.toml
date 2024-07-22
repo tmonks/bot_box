@@ -16,6 +16,9 @@ processes = []
 [experimental]
   auto_rollback = true
 
+[deploy]
+  release_command = "/app/bin/chat_bots eval 'Mix.Tasks.Seed.run([])'"
+
 [[services]]
   autostart = true
   autostop = false
