@@ -4,6 +4,7 @@ defmodule ChatBots.Release do
   installed.
   """
   @app :chat_bots
+  alias ChatBots.Seeder
 
   def migrate do
     load_app()
@@ -11,6 +12,11 @@ defmodule ChatBots.Release do
     for repo <- repos() do
       {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
     end
+  end
+
+  def seed do
+    load_app()
+    Seeder.update_bots()
   end
 
   def rollback(repo, version) do
