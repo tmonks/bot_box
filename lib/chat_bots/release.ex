@@ -4,7 +4,6 @@ defmodule ChatBots.Release do
   installed.
   """
   @app :chat_bots
-  alias ChatBots.Seeder
 
   def migrate do
     load_app()
@@ -16,7 +15,8 @@ defmodule ChatBots.Release do
 
   def seed do
     load_app()
-    Seeder.update_bots()
+    seeds_path = Application.app_dir(@app, "priv/repo/seeds.exs")
+    Code.eval_file(seeds_path)
   end
 
   def rollback(repo, version) do
