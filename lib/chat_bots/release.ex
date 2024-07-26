@@ -18,7 +18,7 @@ defmodule ChatBots.Release do
     load_app()
 
     [repo] = repos()
-    {:ok, _, _} = Ecto.Migrator.with_repo(repo, fn _repo -> Seeder.run() end)
+    {:ok, _, _} = Ecto.Migrator.with_repo(repo, fn _repo -> Seeder.update_bots() end)
   end
 
   def rollback(repo, version) do
