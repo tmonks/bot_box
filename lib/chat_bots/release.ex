@@ -3,6 +3,7 @@ defmodule ChatBots.Release do
   Used for executing DB release tasks when run in production without Mix
   installed.
   """
+  alias ChatBots.Seeder
   @app :chat_bots
 
   def migrate do
@@ -15,8 +16,9 @@ defmodule ChatBots.Release do
 
   def seed do
     load_app()
-    seeds_path = Application.app_dir(@app, "priv/repo/seeds.exs")
-    Code.eval_file(seeds_path)
+
+    [repo] = repos()
+    {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Seeder.update_bots/0)
   end
 
   def rollback(repo, version) do
