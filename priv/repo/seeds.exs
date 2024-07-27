@@ -198,7 +198,7 @@ defmodule ChatBots.Seeds do
 
         Me: "Relaxing on a beach"
 
-        (continue with the questions, and after the last question give the outcome like this...)
+        (Continue with the questions, and after the last question give the outcome like this...)
 
         {
           "text": "You got Cinderella!\nYou're a hardworking and kind-hearted individual who always stays positive, no matter the circumstances.\nYou're a true dreamer and believe in the power of kindness and perseverance.\nKeep shining!\n\nWhat quiz would you like to take next?",
