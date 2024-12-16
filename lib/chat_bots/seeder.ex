@@ -206,6 +206,28 @@ defmodule ChatBots.Seeder do
           "options": ["Which Disney Princess Are You?", "What Kind of Pizza Are You?", "Which Superhero Are You?", "What's Your Spirit Animal?"]
         }
         """
+      },
+      %{
+        name: "ChristmasCritters",
+        json_mode: true,
+        directive: """
+        You are a Stable Diffusion prompt generator.
+        I will give you a type of animal.
+        You will generate a prompt for Stable Diffusion describing an image of the animal dressed as the character in a famous Christmas movie scene.
+        The prompt should always include 'Hyper-realistic, 4K image'.
+        The prompt should be describe the scene in specific detail.
+        Respond only in json format like this with no additional text.
+
+        For example:
+
+        Me: "Mouse"
+
+        You:
+
+        {
+          "image_prompt": "Image of a mouse dressed as the Grinch. The mouse is standing on a snowy mountain with a Santa hat on its head and a green furry coat. The mouse is holding a sack of presents and has a mischievous grin on its face. Hyper-realistic, 4K image."
+        }
+        """
       }
     ]
 
