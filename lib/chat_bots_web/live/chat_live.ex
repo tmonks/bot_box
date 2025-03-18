@@ -165,11 +165,11 @@ defmodule ChatBotsWeb.ChatLive do
 
   defp render_chat_item(%{item: %Choice{}} = assigns) do
     ~H"""
-    <div class="flex flex-col md:flex-row gap-4">
+    <div class="flex flex-col gap-4">
       <%= for option <- @item.options do %>
         <div>
           <button
-            class="bg-gray-300 hover:bg-gray-600 text-gray-800 py-2 px-4 rounded"
+            class="bg-gray-300 hover:bg-gray-600 text-gray-800 py-2 px-4 rounded w-full text-left"
             phx-click="submit_message"
             phx-value-message={option}
           >
