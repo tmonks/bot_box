@@ -1,65 +1,105 @@
 defmodule ChatBotsWeb.ChatLive do
   use ChatBotsWeb, :live_view
-  alias ChatBots.Bots
   alias ChatBots.Chats
+  alias ChatBots.Chats.Bubble
+  alias ChatBots.Chats.Choice
+  alias ChatBots.Chats.Image
+  alias ChatBots.Chats.ImageRequest
+  alias ChatBots.OpenAi.Api, as: ChatApi
+  alias ChatBots.StabilityAi.Api, as: ImageApi
+  alias ChatBots.Parser
 
-  def mount(_params, _session, socket) do
-    bots = Bots.list_bots()
-    bot = hd(bots)
-    chat = Chats.new_chat(bot.id)
-    messages = [%{role: "info", content: "#{bot.name} has entered the chat"}]
+  def mount(%{"id" => chat_id}, _session, socket) do
+    chat = Chats.get_chat!(chat_id)
 
     socket =
       socket
-      |> assign(:bots, bots)
-      |> assign(:bot, bot)
       |> assign(:chat, chat)
-      |> assign(:messages, messages)
+      |> assign(:messages, chat.messages)
       |> assign(:loading, false)
 
     {:ok, socket}
   end
 
-  def handle_event("select_bot", %{"bot_id" => bot_id}, socket) do
-    bot = Bots.get_bot(bot_id)
-    chat = Chats.new_chat(bot.id)
-    messages = [%{role: "info", content: "#{bot.name} has entered the chat"}]
-
-    socket =
-      socket
-      |> assign(:bot, bot)
-      |> assign(:chat, chat)
-      |> assign(:messages, messages)
-
-    {:noreply, socket}
-  end
-
   def handle_event("submit_message", %{"message" => message_text}, socket) do
     # send a message to self to trigger the API call in the background
-    send(self(), {:send_message, message_text})
+    send(self(), :request_chat)
 
     # add user message to messages
-    user_message = %{role: "user", content: message_text}
-    messages = socket.assigns.messages ++ [user_message]
+    {:ok, message} =
+      Chats.create_message(socket.assigns.chat, %{role: "user", content: message_text})
 
-    socket = assign(socket, messages: messages, loading: true)
-    {:noreply, socket}
+    messages = socket.assigns.messages ++ [message]
+
+    {:noreply, assign(socket, messages: messages, loading: true)}
   end
 
-  def handle_info({:send_message, message_text}, socket) do
-    socket =
-      case ChatBots.ChatApi.send_message(socket.assigns.chat, message_text) do
-        {:ok, chat} ->
-          new_message = chat.messages |> List.last()
-          messages = socket.assigns.messages ++ [new_message]
-          assign(socket, chat: chat, messages: messages, loading: false)
+  def handle_info(:request_chat, socket) do
+    %{chat: chat, messages: messages} = socket.assigns
+    filtered_messages = prepare_messages(messages)
 
-        {:error, error} ->
-          messages = socket.assigns.messages ++ [%{role: "error", content: error["message"]}]
-          assign(socket, messages: messages, loading: false)
-      end
+    case ChatApi.send_message(chat.bot, filtered_messages) |> IO.inspect() do
+      {:ok, message_attrs} ->
+        {:ok, message} = Chats.create_message(chat, message_attrs)
+        messages = socket.assigns.messages ++ [message]
 
-    {:noreply, socket}
+        {:noreply,
+         socket
+         |> assign(messages: messages, loading: false)
+         |> maybe_send_image_request()}
+
+      {:error, error} ->
+        {:noreply,
+         socket
+         |> add_message(%{role: "error", content: error["message"]})
+         |> assign(loading: false)}
+    end
+  end
+
+  def handle_info({:request_image, image_prompt}, socket) do
+    {:ok, file} = ImageApi.generate_image(image_prompt)
+    image_attrs = %{file: file, prompt: image_prompt}
+    message_attrs = %{role: "image", content: Jason.encode!(image_attrs)}
+
+    {:noreply, add_message(socket, message_attrs) |> assign(loading: false)}
+  end
+
+  defp convert_messages_to_chat_items(messages) do
+    messages
+    |> Enum.filter(&(&1.role != "system"))
+    |> Enum.flat_map(&Parser.parse(&1))
+    |> Enum.filter(&(not is_struct(&1, ImageRequest)))
+  end
+
+  defp prepare_messages(messages) do
+    messages
+    |> Enum.filter(&(&1.role in ["system", "user", "assistant"]))
+    |> Enum.map(&Map.take(&1, [:role, :content]))
+  end
+
+  defp maybe_send_image_request(socket) do
+    # check the latest message for an image prompt
+    image_request =
+      socket.assigns.messages
+      |> List.last()
+      |> Parser.parse()
+      |> Enum.find(&is_struct(&1, ImageRequest))
+
+    case image_request do
+      nil ->
+        socket
+
+      _ ->
+        send(self(), {:request_image, image_request.prompt})
+        assign(socket, loading: true)
+    end
+  end
+
+  defp add_message(socket, message_attrs) do
+    {:ok, message} = Chats.create_message(socket.assigns.chat, message_attrs)
+    messages = socket.assigns.messages ++ [message]
+
+    assign(socket, messages: messages)
   end
 
   def render(assigns) do
@@ -67,21 +107,10 @@ defmodule ChatBotsWeb.ChatLive do
     <h1 class="mt-0 mb-2 text-5xl font-medium leading-tight text-primary">
       Bot Box
     </h1>
-    <form id="bot-select-form" phx-change="select_bot">
-      <select
-        id="bot-select"
-        name="bot_id"
-        class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline mb-2"
-      >
-        <%= options_for_select(bot_options(@bots), @bot.id) %>
-      </select>
-    </form>
-    <!-- chat box to display messages -->
-    <div id="chat-box" class="flex flex-col">
-      <%= for message <- @messages do %>
-        <%= for line <- String.split(message.content, "\n\n") do %>
-          <.message_bubble role={message.role} message_text={line} />
-        <% end %>
+    <!-- chat box to display chat_items -->
+    <div id="chat-box" class="flex flex-col gap-4 mb-2">
+      <%= for chat_item <- convert_messages_to_chat_items(@messages) do %>
+        <.render_chat_item item={chat_item} />
       <% end %>
     </div>
     <!-- loading animation -->
@@ -90,12 +119,12 @@ defmodule ChatBotsWeb.ChatLive do
     <% end %>
     <!-- chat form with textarea to enter message -->
     <form id="chat-form" phx-submit="submit_message">
-      <div class="flex items-center space-x-4 pt-2">
+      <div class="flex items-center space-x-4 mt-10 pt-2">
         <textarea
           id="message"
           name="message"
           rows="1"
-          placeholder="Type a messsage..."
+          placeholder="Type a message..."
           class="flex-grow bg-white border border-gray-300 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
         </textarea>
@@ -110,29 +139,60 @@ defmodule ChatBotsWeb.ChatLive do
     """
   end
 
-  defp message_bubble(%{role: "error"} = assigns) do
+  defp render_chat_item(%{item: %Bubble{type: "error"}} = assigns) do
     ~H"""
-    <p class={get_message_classes(@role)}>Error: <%= @message_text %></p>
+    <p class={get_message_classes(@item.type)}>Error: <%= @item.text %></p>
     """
   end
 
-  defp message_bubble(assigns) do
+  defp render_chat_item(%{item: %Bubble{}} = assigns) do
     ~H"""
-    <p class={get_message_classes(@role)}><%= @message_text %></p>
+    <p class={get_message_classes(@item.type)}><%= @item.text %></p>
     """
   end
 
-  defp get_message_classes(role) do
-    base_classes = "p-2 my-2 rounded-lg text-sm w-auto max-w-md"
+  defp render_chat_item(%{item: %Image{}} = assigns) do
+    ~H"""
+    <div class="chat-image">
+      <%= if is_nil(@item.file) do %>
+        <span>loading...</span>
+      <% else %>
+        <img style="width: 512px" src={"/images/generated/" <> @item.file} />
+      <% end %>
+    </div>
+    """
+  end
 
-    case role do
+  defp render_chat_item(%{item: %Choice{}} = assigns) do
+    ~H"""
+    <div class="flex flex-col gap-4">
+      <%= for option <- @item.options do %>
+        <div>
+          <button
+            class="bg-gray-300 hover:bg-gray-600 text-gray-800 py-2 px-4 rounded w-full text-left"
+            phx-click="submit_message"
+            phx-value-message={option}
+          >
+            <%= option %>
+          </button>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp get_message_classes(type) do
+    base_classes = "p-2 rounded-lg text-sm w-auto max-w-md"
+
+    case type do
       "user" ->
         "#{base_classes} user-bubble text-white bg-blue-500 self-end"
 
+      "bot" ->
+        "#{base_classes} bot-bubble text-white bg-purple-500"
+
       _ ->
-        "#{base_classes} bot-bubble text-gray-800 bg-gray-300"
+        "#{base_classes} text-gray-800 bg-gray-300"
     end
   end
-
-  defp bot_options(bots), do: Enum.map(bots, &{&1.name, &1.id})
 end

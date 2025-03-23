@@ -8,8 +8,8 @@ defmodule ChatBots.OpenAi.Client do
   @callback chat_completion(model: String.t(), messages: [Message.t()]) ::
               {:ok, map()} | {:error, map()}
 
-  def chat_completion(model: model, messages: messages) do
-    client().chat_completion(model: model, messages: messages)
+  def chat_completion(options) do
+    client().chat_completion(options)
   end
 
   defp client do

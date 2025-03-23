@@ -28,8 +28,9 @@ defmodule ChatBots.Application do
     opts = [strategy: :one_for_one, name: ChatBots.Supervisor]
     result = Supervisor.start_link(children, opts)
 
-    # Temporarily reset the database on start during development
-    ChatBots.Seeder.reset()
+    # Update the bots
+    ChatBots.Seeder.update_bots()
+
     result
   end
 

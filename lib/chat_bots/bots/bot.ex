@@ -5,6 +5,7 @@ defmodule ChatBots.Bots.Bot do
   schema "bots" do
     field(:directive, :string)
     field(:name, :string)
+    field(:json_mode, :boolean, default: false)
 
     timestamps()
   end
@@ -12,7 +13,8 @@ defmodule ChatBots.Bots.Bot do
   @doc false
   def changeset(bot, attrs) do
     bot
-    |> cast(attrs, [:name, :directive])
+    |> cast(attrs, [:name, :directive, :json_mode])
     |> validate_required([:name, :directive])
+    |> unique_constraint(:name)
   end
 end

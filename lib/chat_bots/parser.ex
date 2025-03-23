@@ -1,0 +1,69 @@
+defmodule ChatBots.Parser do
+  @moduledoc """
+  Parses messages from the chat API into chat items to be displayed in the chat window.
+  """
+  alias ChatBots.Chats.Choice
+  alias ChatBots.Chats.Bubble
+  alias ChatBots.Chats.Image
+  alias ChatBots.Chats.ImageRequest
+
+  @doc """
+  Parses a chat response into a list of chat items
+  """
+  def parse(%{role: "image", content: content}) do
+    %{"file" => file, "prompt" => prompt} = Jason.decode!(content)
+    [%Image{file: file, prompt: prompt}]
+  end
+
+  def parse(%{role: "assistant", content: content}) do
+    maybe_decode_json(content)
+    |> gather_chat_items()
+  end
+
+  def parse(%{content: content, role: role}) do
+    [%Bubble{type: role, text: content}]
+  end
+
+  defp maybe_decode_json(text) do
+    case Jason.decode(text) do
+      {:ok, map} -> map
+      {_, _} -> text
+    end
+  end
+
+  defp gather_chat_items(content_map) when is_map(content_map) do
+    content_map
+    |> Map.to_list()
+    |> Enum.sort_by(&chat_item_priority/1)
+    |> Enum.map(&parse_chat_item/1)
+    |> List.flatten()
+  end
+
+  defp gather_chat_items(content_map), do: parse_chat_item(content_map)
+
+  defp chat_item_priority({"text", _}), do: 1
+  defp chat_item_priority({"options", _}), do: 2
+  defp chat_item_priority({"image_prompt", _}), do: 3
+  defp chat_item_priority(_), do: 4
+
+  defp parse_chat_item({"text", response}), do: parse_chat_item(response)
+
+  defp parse_chat_item(response) when is_binary(response) do
+    response
+    |> String.replace(~r/\n+/, "\n")
+    |> String.split("\n")
+    |> Enum.map(&%Bubble{type: "bot", text: &1})
+  end
+
+  defp parse_chat_item(response) when is_number(response) do
+    [%Bubble{type: "bot", text: "#{response}"}]
+  end
+
+  defp parse_chat_item({"image_prompt", prompt}), do: [%ImageRequest{prompt: prompt}]
+
+  defp parse_chat_item({"options", options}) do
+    [%Choice{options: options}]
+  end
+
+  defp parse_chat_item(_), do: []
+end

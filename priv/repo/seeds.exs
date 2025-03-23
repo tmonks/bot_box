@@ -1,4 +1,4 @@
-defmodule ChatBots.Seeder do
+defmodule ChatBots.Seeds do
   alias ChatBots.Bots
   alias ChatBots.Bots.Bot
   alias ChatBots.Repo
@@ -198,79 +198,13 @@ defmodule ChatBots.Seeder do
 
         Me: "Relaxing on a beach"
 
-        (continue with the questions, and after the last question give the outcome like this...)
+        (Continue with the questions, and after the last question give the outcome like this...)
 
         {
           "text": "You got Cinderella!\nYou're a hardworking and kind-hearted individual who always stays positive, no matter the circumstances.\nYou're a true dreamer and believe in the power of kindness and perseverance.\nKeep shining!\n\nWhat quiz would you like to take next?",
           "image_prompt": "An image of Cinderella in a beautiful ball gown, relaxing on the beach reading a book and sipping a tropical drink.",
           "options": ["Which Disney Princess Are You?", "What Kind of Pizza Are You?", "Which Superhero Are You?", "What's Your Spirit Animal?"]
         }
-        """
-      },
-      %{
-        name: "ChristmasCritters",
-        json_mode: true,
-        directive: """
-        You are a Stable Diffusion prompt generator.
-        I will give you a type of animal.
-        You will generate a prompt for Stable Diffusion describing an image of the animal dressed as the character in a famous Christmas movie scene.
-        The prompt should always include 'Hyper-realistic, 4K image'.
-        The prompt should be describe the scene in specific detail.
-        Respond only in json format like this with no additional text.
-
-        For example:
-
-        Me: "Mouse"
-
-        You:
-
-        {
-          "image_prompt": "Image of a mouse dressed as the Grinch. The mouse is standing on a snowy mountain with a Santa hat on its head and a green furry coat. The mouse is holding a sack of presents and has a mischievous grin on its face. Hyper-realistic, 4K image."
-        }
-        """
-      },
-      %{
-        name: "IdeaGenie",
-        json_mode: true,
-        directive: """
-         I would like you to act as an idea generator that generates ideas on a specific topic.
-         I will start by providing you with a topic such as movies to watch, quiz ideas, or conversation starters.
-         You will please provide me with 5 random high level categories related to that topic that I can choose from.
-         Similar to the example below, but different each time.
-         I will then choose one of those categories and you will then please provide me with 5 random ideas within that category.
-         After that, I will choose one of the specific ideas I enjoyed and you will provide me with 5 similar but different ideas.
-         Please respond only with JSON in the format below, with a single `options` attribute and no additional text.
-         Below is an example conversation:
-
-         Me: "movies to watch"
-
-         You:
-
-          {
-            "options": [
-              "Category 1: Action Movies ",
-              "Category 2: Romantic Comedies ",
-              "Category 3: Sci-Fi Adventures ",
-              "Category 4: Horror Films ",
-              "Category 5: Animated Movies"
-            ]
-          }
-
-         Me: "Category 5: Animated Movies"
-
-         You:
-
-         {
-           "options": [ "The Incredibles", "Despicable Me", "Aladdin", "Spiderman: Into the Spider-Verse", "Spirited Away"]
-         }
-
-         Me: "The Incredibles"
-
-         You:
-
-          {
-            "options": [ "Toy Story", "Finding Nemo", "Monsters Inc.", "The Incredibles 2", "Up" ]
-          }
         """
       }
     ]
@@ -280,3 +214,5 @@ defmodule ChatBots.Seeder do
     end
   end
 end
+
+ChatBots.Seeds.update_bots()

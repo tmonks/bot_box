@@ -23,6 +23,14 @@ defmodule ChatBotsWeb.Endpoint do
     gzip: false,
     only: ChatBotsWeb.static_paths()
 
+  # serve generated images from /data/generated in production
+  if Mix.env() == :prod do
+    plug Plug.Static,
+      at: "/images/generated",
+      from: "/data/generated-images",
+      gzip: false
+  end
+
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
