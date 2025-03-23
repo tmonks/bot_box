@@ -1,7 +1,7 @@
 defmodule ChatBots.OpenAi.Api do
   alias ChatBots.OpenAi.Client
 
-  @model "gpt-3.5-turbo"
+  @model "gpt-4o-mini"
 
   @doc """
   Sends a message to the chat bot and returns the updated chat.
